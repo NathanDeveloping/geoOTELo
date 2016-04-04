@@ -1,6 +1,6 @@
 # geoOTELo
 
-**geoOTELo** est un projet de l'Observatoire Terre Environnement Lorraine (OTELo) permettant la sauvegarde, le traitement et la valorisation des jeux de données produits.
+**geoOTELo** est un projet de l'Observatoire Terre Environnement Lorraine (OTELo) permettant la sauvegarde, le traitement et la valorisation des jeux de données produits sur les différentes thématiques scientifiques.
 
 # Branches:
 
