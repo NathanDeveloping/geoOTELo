@@ -126,9 +126,15 @@ function introToArray($objPHPExcel) {
                     switch($key) {
                         case "TITLE" :
                         case "DATA DESCRIPTION" :
-                        case "LANGUAGE" :
                         case "PROJECT NAME" :
                             $arrKey[$key] = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue();
+                            break;
+                        case "LANGUAGE" :
+                            $language = strtolower(objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
+                            if($language != "francais" && $language != "english") {
+                                throw new Exception("Language incorrect (francais ou english)");
+                            }
+                            $arrKey["LANGUAGE"] = $language;
                             break;
                         case "NAME" :
                         case "FIRST NAME" :
