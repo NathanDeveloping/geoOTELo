@@ -1,0 +1,15 @@
+{
+  "name": "geoOTELo",
+  "type" : "project",
+  "require": {
+    "php": ">=5.4.0",
+    "phpoffice/phpexcel" : ">=1.8.1"
+  },
+  "autoload": {
+    "psr-0": {
+      "geoOTELo": "src",
+      "config" : "src"
+    }
+  }
+
+}
