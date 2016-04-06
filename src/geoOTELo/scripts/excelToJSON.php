@@ -80,7 +80,7 @@ function csvToJSON($file) {
     $objReader = PHPExcel_IOFactory::createReader($filetype);
     $objPHPExcel = $objReader->load($file);
     if(strpos($file, "INTRO") !== false) {
-        echo json_encode(array(basename($file, ".csv") => introToJSON($objPHPExcel)));
+        echo json_encode(array(basename($file, ".csv") => introToArray($objPHPExcel)));
     } elseif(strpos($file, "DATA") !== false) {
         // not implemented
     } else {
@@ -112,7 +112,7 @@ function introToArray($objPHPExcel) {
         // parcours de de la colonne A (colonne de clefs)
         foreach($cellIterator as $cell) {
             if($cell->getColumn() == 'A') {
-                $key = strtoupper($cell->getCalculatedValue());
+                $key = strtoupper(trim($cell->getCalculatedValue()));
                 if($key != "") {
                     /**
                      * Mise en forme du tableau :
@@ -127,10 +127,10 @@ function introToArray($objPHPExcel) {
                         case "TITLE" :
                         case "DATA DESCRIPTION" :
                         case "PROJECT NAME" :
-                            $arrKey[$key] = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue();
+                            $arrKey[$key] = trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
                             break;
                         case "LANGUAGE" :
-                            $language = strtolower(objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
+                            $language = strtolower(trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue()));
                             if($language != "francais" && $language != "english") {
                                 throw new Exception("Language incorrect (francais ou english)");
                             }
@@ -138,10 +138,10 @@ function introToArray($objPHPExcel) {
                             break;
                         case "NAME" :
                         case "FIRST NAME" :
-                            $obj[$key] = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue();
+                            $obj[$key] = trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
                             break;
                         case "MAIL" :
-                            $mail = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue();
+                            $mail = trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
                             if(!isEmail($mail)) {
                                 throw new Exception("Format d'e-mail incorrect.");
                             }
@@ -156,57 +156,57 @@ function introToArray($objPHPExcel) {
                             $activeField = "OPERATOR";
                             break;
                         case "CREATION DATE" :
-                            $date = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue();
+                            $date = trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
                             if(!testDate($date)) {
                                 throw new Exception("Format de date incorrect.");
                             }
                             $arrKey["CREATION DATE"] = $date;
                             break;
                         case "SAMPLING DATE" :
-                            $date = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue();
+                            $date = trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue());
                             if(!testDate($date)) {
                                 throw new Exception("Format de date incorrect.");
                             }
                             $arrKey["SAMPLING DATE"][] = $date;
                             break;
                         case "INSTITUTION" :
-                            $arrKey["INSTITUTION"][] = array("NAME" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
+                            $arrKey["INSTITUTION"][] = array("NAME" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue()));
                             break;
                         case "SCIENTIFIC FIELD" :
-                            $arrKey["SCIENTIFIC FIELD"][] = array("NAME" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
+                            $arrKey["SCIENTIFIC FIELD"][] = array("NAME" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue()));
                             break;
                         case "STATION" :
                             $activeField = "STATION";
                             $obj = array(
-                                "NAME" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue(),
-                                "ABBREVIATION" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(2, $ligne)->getCalculatedValue(),
-                                "LONGITUDE" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(3, $ligne)->getFormattedValue(),
-                                "LATITUDE" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(4, $ligne)->getFormattedValue(),
-                                "ELEVATION" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(5, $ligne)->getFormattedValue()
+                                "NAME" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue()),
+                                "ABBREVIATION" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(2, $ligne)->getCalculatedValue()),
+                                "LONGITUDE" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(3, $ligne)->getFormattedValue()),
+                                "LATITUDE" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(4, $ligne)->getFormattedValue()),
+                                "ELEVATION" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(5, $ligne)->getFormattedValue())
                             );
                             $arrKey["STATION"][] = $obj;
                             $obj = array();
                             break;
                         case "SAMPLE KIND" :
                             $obj = array(
-                                "NAME" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue(),
-                                "ABBREVIATION" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(2, $ligne)->getValue()
+                                "NAME" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue()),
+                                "ABBREVIATION" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(2, $ligne)->getValue())
                             );
                             $arrKey["SAMPLE KIND"][] = $obj;
                             $obj = array();
                             break;
                         case "MEASUREMENT" :
                             $obj = array(
-                                "NATURE" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue(),
-                                "ABBREVIATION" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(2, $ligne)->getValue(),
-                                "UNIT" => $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(3, $ligne)->getValue()
+                                "NATURE" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue()),
+                                "ABBREVIATION" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(2, $ligne)->getValue()),
+                                "UNIT" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(3, $ligne)->getValue())
                             );
                             $arrKey["MEASUREMENT"][] = $obj;
                             $obj = array();
                             break;
                         case "METHODOLOGY" :
-                            $field = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue();
-                            $obj[$field] = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(2, $ligne)->getValue();
+                            $field = trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue());
+                            $obj[$field] = trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(2, $ligne)->getValue());
                             if($field == "comments") {
                                 $arrKey["METHODOLOGY"] = $obj;
                                 $obj = array();
