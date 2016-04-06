@@ -3,7 +3,7 @@
 * Converts files Excel to JSON
 *
 */
-header('Content-type: application/json');
+header('Content-type: application/json;charset=utf-8');
 
 require '../../../vendor/autoload.php';
 
@@ -12,12 +12,15 @@ use phpoffice\phpexcel;
 /**
  * Test : nom de fichier specifie
  */
-if(!isset($argv[1])) {
-    echo "Entrer un nom de fichier : php excelToJSON <nom du fichier>" . PHP_EOL;
-    exit();
-}
+//if(!isset($argv[1])) {
+//    echo "Entrer un nom de fichier : php excelToJSON <nom du fichier>" . PHP_EOL;
+//    exit();
+//}
+//
+//$file = $argv[1];
 
-$file = $argv[1];
+$file = "WAT_20140120_MUSTA_GP.xlsx";
+//$file = "WAT_20140120_MUSTA_GP_INTRO.csv";
 
 /**
  * Test : fichier existant
@@ -43,14 +46,17 @@ if(!stringContains($file, $types))
     throw new Exception("Le fichier n'est pas nommé de façon adéquate.");
 }
 
+$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+
 /**
  * Test : encodage du fichier en UTF-8
  */
-if(!isUTF8($file)) {
-    throw new Exception("Le fichier doit etre encode en UTF-8.");
+if(!isUTF8($file) && $ext == "csv") {
+    echo "Le fichier doit etre encode en UTF-8. Conversion..." . PHP_EOL;
+    if(!toUTF8($file)) {
+        throw new Exception("Conversion en UTF-8 impossible.");
+    }
 }
-
-$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
 /**
  * Test et filtre :
@@ -62,10 +68,9 @@ switch($ext) {
         csvToJSON($file);
         break;
     case 'xlsx' :
-        echo "fichier XLSX : lancement du traitement." . PHP_EOL;
-        break;
     case 'xls' :
-        echo "fichier XLS : lancement du traitement." . PHP_EOL;
+        echo "fichier XLS ou XLSX : lancement du traitement." . PHP_EOL;
+        xlsxToJSON($file);
         break;
     default :
         throw new Exception("Le type de fichier est incorrect");
@@ -79,8 +84,10 @@ function csvToJSON($file) {
     $filetype = PHPExcel_IOFactory::identify($file);
     $objReader = PHPExcel_IOFactory::createReader($filetype);
     $objPHPExcel = $objReader->load($file);
+    $objPHPExcel->setActiveSheetIndex(0);
     if(strpos($file, "INTRO") !== false) {
         echo json_encode(array(basename($file, ".csv") => introToArray($objPHPExcel)));
+        return true;
     } elseif(strpos($file, "DATA") !== false) {
         // not implemented
     } else {
@@ -89,11 +96,37 @@ function csvToJSON($file) {
 }
 
 /**
+ * Fonction permettant de convertir un
+ * feuillet XLSX en plusieurs feuillets CSV
+ */
+function xlsxToCSV($file) {
+    $name = basename($file, ".xlsx");
+    $filetype = PHPExcel_IOFactory::identify($file);
+    $objReader = PHPExcel_IOFactory::createReader($filetype);
+    $objReader->setLoadSheetsOnly("INTRO");
+    $objPHPExcel = $objReader->load($file);
+    $writer = PHPExcel_IOFactory::createWriter($objPHPExcel, "CSV");
+    $writer->save($name . "_INTRO.csv");
+    $objReader->setLoadSheetsOnly("data");
+    $objPHPExcel2 = $objReader->load($file);
+    $writer2 = PHPExcel_IOFactory::createWriter($objPHPExcel2, "CSV");
+    $writer2->save($name . "_DATA.csv");
+    return true;
+}
+
+/**
  * Fonction traitement de fichier XLSX
  *
  */
 function xlsxToJSON($file) {
-    // not implemented
+    if(xlsxToCSV($file)) {
+        $basename = basename($file, ".xlsx");
+        $intro = $basename . "_INTRO.csv";
+        if(csvToJSON($intro)) {
+            unlink($intro);
+        }
+        // gestion data not implemented
+    }
 }
 
 /**
@@ -163,7 +196,7 @@ function introToArray($objPHPExcel) {
                             $arrKey["CREATION DATE"] = $date;
                             break;
                         case "SAMPLING DATE" :
-                            $date = trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue());
+                            $date = trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
                             if(!testDate($date)) {
                                 throw new Exception("Format de date incorrect.");
                             }
@@ -177,11 +210,12 @@ function introToArray($objPHPExcel) {
                             break;
                         case "STATION" :
                             $activeField = "STATION";
+                            $longitude = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(3, $ligne)->getValue();
                             $obj = array(
                                 "NAME" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1, $ligne)->getValue()),
                                 "ABBREVIATION" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(2, $ligne)->getCalculatedValue()),
                                 "LONGITUDE" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(3, $ligne)->getFormattedValue()),
-                                "LATITUDE" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(4, $ligne)->getFormattedValue()),
+                                "LATITUDE" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(4, $ligne)->getValue()),
                                 "ELEVATION" => trim($objPHPExcel->getActiveSheet()->getCellByColumnAndRow(5, $ligne)->getFormattedValue())
                             );
                             $arrKey["STATION"][] = $obj;
@@ -277,4 +311,26 @@ function testDate($date) {
 function isUTF8($file) {
     $text = file_get_contents($file);
     return (mb_detect_encoding($text,"UTF-8, ISO-8859-1, GBK")=="UTF-8");
+}
+
+/**
+ * Permet de convertir un fichier
+ * en UTF-8
+ *
+ * @param : $file
+ *          chemin du fichier
+ *
+ */
+function toUTF8($file) {
+    if(!file_exists($file)) return false;
+    $contents = file_get_contents($file);
+    if(!mb_check_encoding($file, 'UTF-8')) return false;
+    ini_set('track_errors', 1);
+    $file = fopen($file, 'w+');
+    if(!$file) {
+        throw new Exception("Le fichier est deja ouvert.");
+    }
+    fputs($file, iconv("ISO-8859-15", 'UTF-8', $contents));
+    fclose($file);
+    return true;
 }
