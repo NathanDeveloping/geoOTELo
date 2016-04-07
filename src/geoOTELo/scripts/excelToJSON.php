@@ -13,15 +13,12 @@ use geoOTELo\util\PathManager;
 /**
  * Test : nom de fichier specifie
  */
-//if(!isset($argv[1])) {
-//    echo "Entrer un nom de fichier : php excelToJSON <nom du fichier>" . PHP_EOL;
-//    exit();
-//}
-//
-//$file = $argv[1];
+if(!isset($argv[1])) {
+    echo "Entrer un nom de fichier : php excelToJSON <nom du fichier>" . PHP_EOL;
+    exit();
+}
 
-$file = "WAT_20140120_MUSTA_GP.xlsx";
-//$file = "WAT_20140120_MUSTA_GP_INTRO.csv";
+$file = $argv[1];
 
 /**
  * Test : fichier existant
