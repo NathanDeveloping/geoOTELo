@@ -105,16 +105,36 @@ function xlsxToCSV($file) {
         mkdir(getcwd() . "/CSV", 0777, true);
     }
     $name = basename($file, ".xlsx");
-    $filetype = PHPExcel_IOFactory::identify($file);
-    $objReader = PHPExcel_IOFactory::createReader($filetype);
-    $objReader->setLoadSheetsOnly("INTRO");
-    $objPHPExcel = $objReader->load($file);
-    $writer = PHPExcel_IOFactory::createWriter($objPHPExcel, "CSV");
-    $writer->save("CSV/" . $name . "_INTRO.csv");
-    $objReader->setLoadSheetsOnly("data");
-    $objPHPExcel2 = $objReader->load($file);
-    $writer2 = PHPExcel_IOFactory::createWriter($objPHPExcel2, "CSV");
-    $writer2->save("CSV/" . $name . "_DATA.csv");
+    $introName = "CSV/" . $name . "_INTRO.csv";
+    $dataName = "CSV/" . $name . "_DATA.csv";
+    $modifiedIntro = true;
+    $modifiedData = true;
+    if(file_exists($introName)) {
+        if(filemtime($file) < filemtime($introName)) {
+            $modifiedIntro = false;
+        }
+    }
+    if(file_exists($dataName)) {
+        if(filemtime($file) < filemtime($dataName)) {
+            $modifiedData = false;
+        }
+    }
+    if($modifiedIntro || $modifiedData) {
+        $filetype = PHPExcel_IOFactory::identify($file);
+        $objReader = PHPExcel_IOFactory::createReader($filetype);
+    }
+    if($modifiedIntro) {
+        $objReader->setLoadSheetsOnly("INTRO");
+        $objPHPExcel = $objReader->load($file);
+        $writer = PHPExcel_IOFactory::createWriter($objPHPExcel, "CSV");
+        $writer->save($introName);
+    }
+    if($modifiedData) {
+        $objReader->setLoadSheetsOnly("data");
+        $objPHPExcel2 = $objReader->load($file);
+        $writer2 = PHPExcel_IOFactory::createWriter($objPHPExcel2, "CSV");
+        $writer2->save($dataName);
+    }
     return true;
 }
 
@@ -354,9 +374,9 @@ function toUTF8($file) {
  */
 function folderExist($folder) {
     $path = realpath($folder);
-     if($path !== false AND is_dir($path)){
+    if($path !== false AND is_dir($path)){
         return true;
     } else {
         return false;
-     }
+    }
 }
