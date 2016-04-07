@@ -41,7 +41,6 @@ class PathManager {
     public function analyze($dir) {
         $result = array();
         $scDir = scanDir($dir);
-        $relativePath = base;
         foreach($scDir as $key => $value) {
             if(!in_array($value, array(".", ".."))) {
                 if(is_dir($dir . DIRECTORY_SEPARATOR . $value)) {
@@ -79,8 +78,8 @@ class PathManager {
                 }
             });
         } catch (Exception $exception) {}
-        if($path = null) {
-            throw new Exception("")
+        if($path == null) {
+            throw new Exception("Fichier de DATA introuvable, generation JSON impossible.");
         }
         return $path;
     }

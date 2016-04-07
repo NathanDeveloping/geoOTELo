@@ -8,6 +8,7 @@ header('Content-type: application/json;charset=utf-8');
 require '../../../vendor/autoload.php';
 
 use phpoffice\phpexcel;
+use geoOTELo\util\PathManager;
 
 /**
  * Test : nom de fichier specifie
@@ -86,7 +87,8 @@ function csvToJSON($file) {
     $objPHPExcel = $objReader->load($file);
     $objPHPExcel->setActiveSheetIndex(0);
     if(strpos($file, "INTRO") !== false) {
-        echo json_encode(array(basename($file, ".csv") => introToArray($objPHPExcel)));
+
+        echo json_encode(array(basename($file, ".csv") => introToArray($objPHPExcel, $file)));
         return true;
     } elseif(strpos($file, "DATA") !== false) {
         // not implemented
@@ -123,7 +125,7 @@ function xlsxToJSON($file) {
         $basename = basename($file, ".xlsx");
         $intro = $basename . "_INTRO.csv";
         if(csvToJSON($intro)) {
-            unlink($intro);
+            //unlink($intro);
         }
         // gestion data not implemented
     }
@@ -133,7 +135,7 @@ function xlsxToJSON($file) {
  * Fonction traitement du feuillet d'INTRO
  *
  */
-function introToArray($objPHPExcel) {
+function introToArray($objPHPExcel, $fileName) {
     $rowIterator = $objPHPExcel->getActiveSheet()->getRowIterator();
     // init tableau resultat, variable champ temporaire et tableau temporaire
     $arrKey = array();
@@ -253,6 +255,10 @@ function introToArray($objPHPExcel) {
             }
         }
     }
+    $cwd = getcwd();
+    $pm = new PathManager($cwd); // a n'utiliser qu'une fois dans une structure orientee objet
+    $data = basename($fileName, "_INTRO.csv") . "_DATA.csv";
+    $arrKey['DATA_URL'] = str_replace($cwd . "\\", "", $pm->getPath($data));
     return $arrKey;
 }
 
