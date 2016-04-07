@@ -10,68 +10,62 @@ require '../../../vendor/autoload.php';
 use phpoffice\phpexcel;
 use geoOTELo\util\PathManager;
 
-/**
- * Test : nom de fichier specifie
- */
-if(!isset($argv[1])) {
-    echo "Entrer un nom de fichier : php excelToJSON <nom du fichier>" . PHP_EOL;
-    exit();
-}
+$pm = new PathManager(getcwd() . "\analyses");
 
-$file = $argv[1];
-
-/**
- * Test : fichier existant
- */
-if(!file_exists($file)) {
-    throw new Exception("Le fichier est introuvable.");
+foreach($pm->excelFiles as $k => $v) {
+    $print = str_replace(getcwd() . "\\", "", $v);
+    echo "[$print] => ";
+    launch($v);
 }
 
 /**
- * Test : fichier lisible
+ *  Fonction de lancement du traitement d'un
+ *  fichier donne
+ *
+ *  @param $file :
+ *          fichier a traiter
  */
-if(!is_readable($file)) {
-    throw new Exception("Le fichier n'est pas ouvert à la lecture.");
-}
-
-$types = array("PSD.XLSX", "MIN.XLSX", "EA.XLSX", "PAC.XLSX", "MIC.XLSX", "XRF.XLSX", "GP.XLSX", "ISO.XLSX", "16S-MGE.XLSX", "DMT.XLSX", "ECOLI-ENT.XLSX", "PHAGE.XLSX", "PSD", "MIN", "EA", "PAC", "MIC", "XRF", "GP", "ISO", "DMT", "16S-MGE", "ECOLI-ENT", "PHAGE");
-
-/**
- * Test : nommage du fichier correct (type specifie)
- */
-if(!stringContains($file, $types))
-{
-    throw new Exception("Le fichier n'est pas nommé de façon adéquate.");
-}
-
-$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-
-/**
- * Test : encodage du fichier en UTF-8
- */
-if(!isUTF8($file) && $ext == "csv") {
-    echo "Le fichier doit etre encode en UTF-8. Conversion..." . PHP_EOL;
-    if(!toUTF8($file)) {
-        throw new Exception("Conversion en UTF-8 impossible.");
+function launch($file) {
+    // Test : fichier existant
+    if(!file_exists($file)) {
+        throw new Exception("Le fichier est introuvable.");
     }
-}
 
-/**
- * Test et filtre :
- * gestion de l'extension (CSV, XLSX et XLS)
- */
-switch($ext) {
-    case 'csv' :
-        echo "fichier CSV : lancement du traitement." . PHP_EOL;
-        csvToJSON($file);
-        break;
-    case 'xlsx' :
-    case 'xls' :
-        echo "fichier XLS ou XLSX : lancement du traitement." . PHP_EOL;
-        xlsxToJSON($file);
-        break;
-    default :
-        throw new Exception("Le type de fichier est incorrect");
+    // Test : fichier lisible
+    if(!is_readable($file)) {
+        throw new Exception("Le fichier n'est pas ouvert à la lecture.");
+    }
+    $types = array("PSD.XLSX", "MIN.XLSX", "EA.XLSX", "PAC.XLSX", "MIC.XLSX", "XRF.XLSX", "GP.XLSX", "ISO.XLSX", "16S-MGE.XLSX", "DMT.XLSX", "ECOLI-ENT.XLSX", "PHAGE.XLSX", "PSD", "MIN", "EA", "PAC", "MIC", "XRF", "GP", "ISO", "DMT", "16S-MGE", "ECOLI-ENT", "PHAGE");
+
+    //Test : nommage du fichier correct (type specifie)
+    if(!stringContains($file, $types))
+    {
+        throw new Exception("Le fichier n'est pas nommé de façon adéquate.");
+    }
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+
+    // Test : encodage du fichier en UTF-8
+    if(!isUTF8($file) && $ext == "csv") {
+        echo "Le fichier doit etre encode en UTF-8. Conversion..." . PHP_EOL;
+        if(!toUTF8($file)) {
+            throw new Exception("Conversion en UTF-8 impossible.");
+        }
+    }
+
+    // Test et filtre : gestion de l'extension (CSV, XLSX et XLS)
+    switch($ext) {
+        case 'csv' :
+            echo "fichier CSV : OK." . PHP_EOL;
+            csvToJSON($file);
+            break;
+        case 'xlsx' :
+        case 'xls' :
+            echo "fichier XLS ou XLSX : OK." . PHP_EOL;
+            xlsxToJSON($file);
+            break;
+        default :
+            throw new Exception("Le type de fichier est incorrect");
+    }
 }
 
 /**

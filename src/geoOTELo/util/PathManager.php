@@ -46,7 +46,7 @@ class PathManager {
                 if(is_dir($dir . DIRECTORY_SEPARATOR . $value)) {
                     $list = $this->analyze($dir . DIRECTORY_SEPARATOR . $value);
                     if(count($list) != 0) {
-                        $result[$dir . DIRECTORY_SEPARATOR . $value] = $list;
+                        $result = array_merge($result, $list);
                     }
                 } else {
                     $ext = strtolower(pathinfo($value, PATHINFO_EXTENSION));
