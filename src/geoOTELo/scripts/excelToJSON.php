@@ -78,8 +78,8 @@ switch($ext) {
 }
 
 /**
- * Fonction traitement de fichier CSV
- * test : specification INTRO ou DATA
+ *  Fonction traitement de fichier CSV
+ *  test : specification INTRO ou DATA
  */
 function csvToJSON($file) {
     $filetype = PHPExcel_IOFactory::identify($file);
@@ -87,7 +87,6 @@ function csvToJSON($file) {
     $objPHPExcel = $objReader->load($file);
     $objPHPExcel->setActiveSheetIndex(0);
     if(strpos($file, "INTRO") !== false) {
-
         echo json_encode(array(basename($file, ".csv") => introToArray($objPHPExcel, $file)));
         return true;
     } elseif(strpos($file, "DATA") !== false) {
@@ -102,17 +101,20 @@ function csvToJSON($file) {
  * feuillet XLSX en plusieurs feuillets CSV
  */
 function xlsxToCSV($file) {
+    if(!folderExist("CSV")) {
+        mkdir(getcwd() . "/CSV", 0777, true);
+    }
     $name = basename($file, ".xlsx");
     $filetype = PHPExcel_IOFactory::identify($file);
     $objReader = PHPExcel_IOFactory::createReader($filetype);
     $objReader->setLoadSheetsOnly("INTRO");
     $objPHPExcel = $objReader->load($file);
     $writer = PHPExcel_IOFactory::createWriter($objPHPExcel, "CSV");
-    $writer->save($name . "_INTRO.csv");
+    $writer->save("CSV/" . $name . "_INTRO.csv");
     $objReader->setLoadSheetsOnly("data");
     $objPHPExcel2 = $objReader->load($file);
     $writer2 = PHPExcel_IOFactory::createWriter($objPHPExcel2, "CSV");
-    $writer2->save($name . "_DATA.csv");
+    $writer2->save("CSV/" . $name . "_DATA.csv");
     return true;
 }
 
@@ -123,7 +125,7 @@ function xlsxToCSV($file) {
 function xlsxToJSON($file) {
     if(xlsxToCSV($file)) {
         $basename = basename($file, ".xlsx");
-        $intro = $basename . "_INTRO.csv";
+        $intro = "CSV/" . $basename . "_INTRO.csv";
         if(csvToJSON($intro)) {
             //unlink($intro);
         }
@@ -339,4 +341,22 @@ function toUTF8($file) {
     fputs($file, iconv("ISO-8859-15", 'UTF-8', $contents));
     fclose($file);
     return true;
+}
+
+/**
+ * Permet de savoir si le dossier passe en
+ * parametre est existant ou non
+ *
+ * @param $folder :
+ *             nom de dossier
+ * @return true or false :
+ *              fichier existant ou non
+ */
+function folderExist($folder) {
+    $path = realpath($folder);
+     if($path !== false AND is_dir($path)){
+        return true;
+    } else {
+        return false;
+     }
 }
