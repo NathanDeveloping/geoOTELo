@@ -153,8 +153,10 @@ class ExcelConverter {
                     $objReader->setLoadSheetsOnly("INTRO");
                 } else if($objPHPExcel3->sheetNameExists("intro")) {
                     $objReader->setLoadSheetsOnly("intro");
+                } else if($objPHPExcel3->sheetNameExists("Intro")) {
+                    $objReader->setLoadSheetsOnly("Intro");
                 } else {
-                    throw new Exception("Feuillet INTRO ou intro introuvable");
+                    throw new Exception("Feuillet INTRO ou Intro ou intro introuvable");
                 }
                 $objPHPExcel = $objReader->load($file);
                 $writer = PHPExcel_IOFactory::createWriter($objPHPExcel, "CSV");
@@ -165,8 +167,10 @@ class ExcelConverter {
                     $objReader->setLoadSheetsOnly("DATA");
                 } else if($objPHPExcel3->sheetNameExists("data")) {
                     $objReader->setLoadSheetsOnly("data");
+                } else if($objPHPExcel3->sheetNameExists("Data")) {
+                    $objReader->setLoadSheetsOnly("Data");
                 } else {
-                    throw new Exception("Feuillet DATA ou data introuvable");
+                    throw new Exception("Feuillet DATA ou Data ou data introuvable");
                 }
                 $objPHPExcel2 = $objReader->load($file);
                 $writer2 = PHPExcel_IOFactory::createWriter($objPHPExcel2, "CSV");
@@ -316,6 +320,13 @@ class ExcelConverter {
                                     $arrKey["METHODOLOGY"] = $obj;
                                     $obj = array();
                                 }
+                                break;
+                            case "ACRONYM" :
+                                $obj = array(
+                                    "ABBREVIATION" => trim($sheet->getCellByColumnAndRow(1, $ligne)->getValue()),
+                                    "DESCRIPTION" => trim($sheet->getCellByColumnAndRow(2, $ligne)->getValue())
+                                );
+                                $arrKey["ACRONYM"] = $obj;
                                 break;
                             default:
                                 throw new Exception("Champ de donnee inconnu : $key.");
