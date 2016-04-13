@@ -13,9 +13,11 @@ class PathManager {
      * $originDirectory :
      *         repertoire duquel commencer le scan
      * $excelFiles :
-               tableau de chemins de fichiers Excel
+     *         tableau de chemins de fichiers Excel
+     * $nameFiles :
+     *         tableau des noms de fichiers trouves
      */
-    private $originDirectory, $excelFiles;
+    private $originDirectory, $excelFiles, $nameFiles;
 
     /**
      * Constructeur
@@ -26,6 +28,7 @@ class PathManager {
      */
     public function __construct($originDirectory) {
         $this->originDirectory = $originDirectory;
+        $this->nameFiles = array();
         $this->excelFiles = $this->analyze($this->originDirectory);
     }
 
@@ -51,6 +54,7 @@ class PathManager {
                 } else {
                     $ext = strtolower(pathinfo($value, PATHINFO_EXTENSION));
                     if(in_array($ext, array("xlsx", "xls", "csv"))) {
+                        $this->nameFiles[] = basename($value, "." . $ext);
                         $result[] = $dir . DIRECTORY_SEPARATOR . $value;
                     }
                 }
@@ -79,7 +83,7 @@ class PathManager {
             });
         } catch (Exception $exception) {}
         if($path == null) {
-            throw new Exception("Fichier de DATA introuvable, generation JSON impossible.");
+            throw new Exception("Fichier de DATA [$fileName] introuvable, generation JSON impossible.");
         }
         return $path;
     }

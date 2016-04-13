@@ -8,5 +8,6 @@ $baseDir = dirname($vendorDir);
 return array(
     'geoOTELo' => array($baseDir . '/src'),
     'config' => array($baseDir . '/src'),
+    'Psr\\Log\\' => array($vendorDir . '/psr/log'),
     'PHPExcel' => array($vendorDir . '/phpoffice/phpexcel/Classes'),
 );

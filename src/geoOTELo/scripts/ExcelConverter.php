@@ -1,10 +1,12 @@
 <?php
 header('Content-type: application/json;charset=utf-8');
+header('Content-language: fr');
 
 require '../../../vendor/autoload.php';
 
 use phpoffice\phpexcel;
 use geoOTELo\util\PathManager;
+use Katzgrau\KLogger\Logger;
 
 /**
  * Classe convertisseur
@@ -14,10 +16,10 @@ use geoOTELo\util\PathManager;
 class ExcelConverter {
 
     /**
-     * @var string[]    fichiers excel detectes
+     * @var PathManager gestionnaire des chemins des fichiers excel
      * @var string      repertoire de depart de l'analyse des fichiers
      */
-    private $excelFilesList, $originDirectory;
+    private $pathManager, $originDirectory;
 
     /**
      * constructeur
@@ -34,13 +36,48 @@ class ExcelConverter {
      * d'origine donne et de ses sous-repertoires
      *
      */
-    public function convert() {
-        $pm = new PathManager(getcwd() . "\\" . $this->originDirectory);
-        $this->excelFilesList = $pm->excelFiles;
-        foreach($pm->excelFiles as $k => $v) {
+    public function launch() {
+        // supprime le php warning document::loadHTML() : htmlParseStartTag
+        libxml_use_internal_errors(true);
+        $logs = new Logger("../../../log", Psr\Log\LogLevel::WARNING, array(
+            'filename' => "log_" . date("Y-m-d") . ".txt",
+            'dateFormat' => 'G:i:s'
+        ));
+        echo "Test et conversion CSV..." . PHP_EOL;
+        $this->pathManager = new PathManager(getcwd() . "\\" . $this->originDirectory);
+        foreach($this->pathManager->excelFiles as $k => $v) {
             $print = str_replace(getcwd() . "\\", "", $v);
             echo "[$print] => ";
-            $this->launch($v);
+            $this->test($v);
+        }
+        echo PHP_EOL . "Conversion JSON..." . PHP_EOL;
+        $nameFiles = $this->pathManager->nameFiles;
+        $this->pathManager = new PathManager("CSV");
+        foreach($nameFiles as $k => $v) {
+            echo PHP_EOL . "[$v] => ";
+            $intro = "CSV/" . $v . "_INTRO.csv";
+            $data = "CSV/" . $v . "_DATA.csv";
+            try {
+                $introArrayJSON = $this->csvToJSON($intro);
+            } catch (Exception $e) {
+                $msg = "[$intro] " . $e->getMessage();
+                echo $msg . PHP_EOL;
+                $logs->error($msg);
+            }
+            try {
+               $dataArrayJSON = $this->csvToJSON($data);
+            } catch (Exception $e) {
+                $msg = "[$data] " .$e->getMessage();
+                echo $msg;
+                $logs->error($msg);
+            }
+            if($introArrayJSON != null && $dataArrayJSON != null) {
+                echo " OK " . PHP_EOL . PHP_EOL;
+                //echo json_encode(array($v => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
+                $res = json_encode(array($v => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
+            } else {
+                throw new Exception("Fichier INTRO ou DATA manquant");
+            }
         }
     }
 
@@ -51,7 +88,7 @@ class ExcelConverter {
      *  @param $file :
      *          fichier a traiter
      */
-    function launch($file) {
+    function test($file) {
         // Test : fichier existant
         if(!file_exists($file)) {
             throw new Exception("Le fichier est introuvable.");
@@ -61,10 +98,11 @@ class ExcelConverter {
         if(!is_readable($file)) {
             throw new Exception("Le fichier n'est pas ouvert à la lecture.");
         }
-        $types = array("PSD.XLSX", "MIN.XLSX", "EA.XLSX", "PAC.XLSX", "MIC.XLSX", "XRF.XLSX", "GP.XLSX", "ISO.XLSX", "16S-MGE.XLSX", "DMT.XLSX", "ECOLI-ENT.XLSX", "PHAGE.XLSX", "PSD", "MIN", "EA", "PAC", "MIC", "XRF", "GP", "ISO", "DMT", "16S-MGE", "ECOLI-ENT", "PHAGE");
+        $types = array("PSD.XLSX", "MIN.XLSX", "EA.XLSX", "PAC.XLSX", "MIC.XLSX", "XRF.XLSX", "GP.XLSX", "ISO.XLSX", "16S-MGE.XLSX", "DMT.XLSX", "ECOLI-ENT.XLSX", "PHAGE.XLSX", "PSD", "MIN", "EA", "PAC", "MIC", "XRF", "GP", "ISO", "DMT", "16S-MGE", "ECOLI-ENT", "PHAGE", "QMJ", "QTVAR", "QMJ.XLSX", "QTVAR.XLSX", "PSD.XLS", "MIN.XLS", "EA.XLS", "PAC.XLS", "MIC.XLS", "XRF.XLS", "GP.XLS", "ISO.XLS", "16S-MGE.XLS", "DMT.XLS", "ECOLI-ENT.XLS", "PHAGE.XLS");
 
         //Test : nommage du fichier correct (type specifie)
-        if(!$this->stringContains($file, $types))
+        $fileName = basename($file);
+        if(!$this->stringContains($fileName, $types))
         {
             throw new Exception("Le fichier n'est pas nommé de façon adéquate.");
         }
@@ -78,16 +116,23 @@ class ExcelConverter {
             }
         }
 
-        // Test et filtre : gestion de l'extension (CSV, XLSX et XLS)
+        // Test extension (CSV, XLSX et XLS)
         switch($ext) {
             case 'csv' :
-                echo "fichier CSV : OK." . PHP_EOL;
-                $this->csvToJSON($file);
+                echo "fichier CSV : deplacement vers repertoire CSV ";
+                if(!$this->folderExist("CSV")) {
+                    mkdir(getcwd() . "/CSV", 0777, true);
+                }
+                if(rename($file, "CSV\\" . $file)) {
+                    echo "OK" . PHP_EOL;
+                } else {
+                    throw new Exception("Deplacement [$file] impossible");
+                }
                 break;
             case 'xlsx' :
             case 'xls' :
-                echo "fichier XLS ou XLSX : OK." . PHP_EOL;
-                $this->xlsxToJSON($file);
+                echo "fichier " . strtoupper($ext) . " : OK" . PHP_EOL;
+                $this->xlsxToCSV($file);
                 break;
             default :
                 throw new Exception("Le type de fichier est incorrect");
@@ -128,7 +173,8 @@ class ExcelConverter {
         if(!$this->folderExist("CSV")) {
             mkdir(getcwd() . "/CSV", 0777, true);
         }
-        $name = basename($file, ".xlsx");
+        $info = pathinfo($file);
+        $name = basename($file, "." . $info['extension']);
         $introName = "CSV/" . $name . "_INTRO.csv";
         $dataName = "CSV/" . $name . "_DATA.csv";
         $modifiedIntro = true;
@@ -160,7 +206,10 @@ class ExcelConverter {
                 }
                 $objPHPExcel = $objReader->load($file);
                 $writer = PHPExcel_IOFactory::createWriter($objPHPExcel, "CSV");
+                $writer->setPreCalculateFormulas(false);
                 $writer->save($introName);
+                $objPHPExcel->disconnectWorksheets();
+                unset($writer, $objPHPExcel);
             }
             if($modifiedData) {
                 if($objPHPExcel3->sheetNameExists("DATA")) {
@@ -174,29 +223,15 @@ class ExcelConverter {
                 }
                 $objPHPExcel2 = $objReader->load($file);
                 $writer2 = PHPExcel_IOFactory::createWriter($objPHPExcel2, "CSV");
+                $writer2->setPreCalculateFormulas(false);
                 $writer2->save($dataName);
+                $objPHPExcel2->disconnectWorksheets();
+                unset($writer2, $objPHPExcel2);
             }
+            $objPHPExcel3->disconnectWorksheets();
+            unset($objPHPExcel3);
         }
         return true;
-    }
-
-    /**
-     * Methode traitement de fichier XLSX
-     *
-     *  @param $file :
-     *          fichier a traiter
-     */
-    function xlsxToJSON($file) {
-        if($this->xlsxToCSV($file)) {
-            $basename = basename($file, ".xlsx");
-            $intro = "CSV/" . $basename . "_INTRO.csv";
-            $data = "CSV/" . $basename . "_DATA.csv";
-            $introArrayJSON = $this->csvToJSON($intro);
-            $dataArrayJSON = $this->csvToJSON($data);
-            if($introArrayJSON != null && $dataArrayJSON != null) {
-                echo json_encode(array(basename($file, ".xlsx") => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
-            }
-        }
     }
 
     /**
@@ -214,6 +249,7 @@ class ExcelConverter {
         $arrKey = array();
         $activeField = "";
         $obj = array();
+        $count = array();
         // parcours de chaque ligne du fichier
         foreach($rowIterator as $ligne => $row) {
             $cellIterator = $row->getCellIterator();
@@ -230,14 +266,17 @@ class ExcelConverter {
                      * INSTITUTION, SCIENTIFIC FIELD : valeurs sur plusieurs lignes dans le tableur
                      * STATION, SAMPLE KIND, MEASUREMENT : champ multiple sur plusieurs colonnes
                      * METHODOLOGY : champ multiple avec champs specifies en colonne B
+                     * ACRONYM : champ simple sur deux colonnes
                      */
                         switch($key) {
                             case "TITLE" :
                             case "DATA DESCRIPTION" :
                             case "PROJECT NAME" :
+                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
                                 $arrKey[$key] = trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
                                 break;
                             case "LANGUAGE" :
+                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
                                 $language = strtolower(trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue()));
                                 if($language != "francais" && $language != "english") {
                                     throw new Exception("Language incorrect (francais ou english)");
@@ -250,24 +289,34 @@ class ExcelConverter {
                                 break;
                             case "MAIL" :
                                 $mail = trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
-                                if(!$this->isEmail($mail)) {
-                                    throw new Exception("Format d'e-mail incorrect.");
+                                if(!empty($mail)) {
+                                    if(!$this->isEmail($mail)) {
+                                        throw new Exception("Format d'e-mail incorrect.");
+                                    }
+                                    (isset($count["FILE_CREATOR"])) ? $count["FILE_CREATOR"]++ : $count["FILE_CREATOR"] = 1;
+                                    $obj["MAIL"] = $mail;
+                                    $arrKey[$activeField][] = $obj;
+                                    $obj = array();
                                 }
-                                $obj["MAIL"] = $mail;
-                                $arrKey[$activeField][] = $obj;
-                                $obj = array();
                                 break;
                             case "FILE CREATOR" :
                                 $activeField = "FILE CREATOR";
                                 break;
-                            case "OPERATOR" :
+                            case "OPERATOR NAME" :
                                 $activeField = "OPERATOR";
+                                $obj["NAME"] = trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
+                                break;
+                            case "OPERATOR FIRST NAME" :
+                                $obj["FIRSTNAME"] = trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
+                                $arrKey["OPERATOR"][] = $obj;
+                                $obj = array();
                                 break;
                             case "CREATION DATE" :
                                 $date = trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
                                 if(!$this->testDate($date)) {
                                     throw new Exception("Format de date incorrect.");
                                 }
+                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
                                 $arrKey["CREATION DATE"] = $date;
                                 break;
                             case "SAMPLING DATE" :
@@ -275,15 +324,20 @@ class ExcelConverter {
                                 if(!$this->testDate($date)) {
                                     throw new Exception("Format de date incorrect.");
                                 }
+                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
                                 $arrKey["SAMPLING DATE"][] = $date;
                                 break;
                             case "INSTITUTION" :
+                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
                                 $arrKey["INSTITUTION"][] = array("NAME" => trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue()));
                                 break;
                             case "SCIENTIFIC FIELD" :
-                                $arrKey["SCIENTIFIC FIELD"][] = array("NAME" => trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue()));
+                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
+                                $collection = strtolower(trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue()));
+                                $arrKey["SCIENTIFIC FIELD"][] = array("NAME" => $collection);
                                 break;
                             case "STATION" :
+                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
                                 $activeField = "STATION";
                                 $longitude = $sheet->getCellByColumnAndRow(3, $ligne)->getValue();
                                 $obj = array(
@@ -297,6 +351,7 @@ class ExcelConverter {
                                 $obj = array();
                                 break;
                             case "SAMPLE KIND" :
+                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
                                 $obj = array(
                                     "NAME" => trim($sheet->getCellByColumnAndRow(1, $ligne)->getValue()),
                                     "ABBREVIATION" => trim($sheet->getCellByColumnAndRow(2, $ligne)->getValue())
@@ -305,6 +360,7 @@ class ExcelConverter {
                                 $obj = array();
                                 break;
                             case "MEASUREMENT" :
+                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
                                 $obj = array(
                                     "NATURE" => trim($sheet->getCellByColumnAndRow(1, $ligne)->getValue()),
                                     "ABBREVIATION" => trim($sheet->getCellByColumnAndRow(2, $ligne)->getValue()),
@@ -314,6 +370,7 @@ class ExcelConverter {
                                 $obj = array();
                                 break;
                             case "METHODOLOGY" :
+                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
                                 $field = trim($sheet->getCellByColumnAndRow(1, $ligne)->getValue());
                                 $obj[$field] = trim($sheet->getCellByColumnAndRow(2, $ligne)->getValue());
                                 if($field == "comments") {
@@ -328,6 +385,11 @@ class ExcelConverter {
                                 );
                                 $arrKey["ACRONYM"] = $obj;
                                 break;
+                            case "SAMPLE SUFFIX" :
+                                $col = $sheet->getCellByColumnAndRow(1, $ligne)->getValue();
+                                $descr = $sheet->getCellByColumnAndRow(2, $ligne)->getValue();
+                                $arrKey["SAMPLE SUFFIX"][$col] = $descr;
+                                break;
                             default:
                                 throw new Exception("Champ de donnee inconnu : $key.");
                         }
@@ -335,10 +397,12 @@ class ExcelConverter {
                 }
             }
         }
+        $objPHPExcel->disconnectWorksheets();
+        unset($objPHPExcel);
+        $this->keyExist($count);
         $cwd = getcwd();
-        $pm = new PathManager($cwd); // a n'utiliser qu'une fois dans une structure orientee objet
         $data = basename($fileName, "_INTRO.csv") . "_DATA.csv";
-        $arrKey['DATA_URL'] = str_replace($cwd . "\\", "", $pm->getPath($data));
+        $arrKey['DATA_URL'] = str_replace($cwd . "\\", "", $this->pathManager->getPath($data));
         return $arrKey;
     }
 
@@ -362,26 +426,32 @@ class ExcelConverter {
             foreach($cellIterator as $cell) {
                 $indice = PHPExcel_Cell::columnIndexFromString($cell->getColumn());
                 if($ligne == 1) {
-                    $units[trim($cell->getCalculatedValue())] = $sheet->getCellByColumnAndRow($indice-1, $ligne+1)->getValue();
+                    $units[trim($cell->getValue())] = $sheet->getCellByColumnAndRow($indice-1, $ligne+1)->getValue();
                     if($indice == $highestColumn) {
                         $keys = array_keys($units);
                     }
                 } else if ($ligne > 2) {
-                    $value = $cell->getCalculatedValue();
-                    switch($keys[$indice-1]) {
-                        case "date" :
-                            if(!$this->testDate($value)) {
-                                throw new Exception("Format de date incorrect.");
+                    $value = $cell->getValue();
+                    if(!empty($value)) {
+                        if(!empty($keys[$indice-1])) {
+                            switch($keys[$indice-1]) {
+                                case "date" :
+                                    if(!$this->testDate($value)) {
+                                        throw new Exception("Format de date incorrect.");
+                                    }
+                                default :
+                                    $obj[$keys[$indice-1]] = $value;
                             }
-                        default :
-                            $obj[$keys[$indice-1]] = $value;
-                    }
-                    if($indice == $highestColumn) {
-                        $arrKey["SAMPLES"][] = $obj;
+                        }
+                        if($indice == $highestColumn) {
+                            $arrKey["SAMPLES"][] = $obj;
+                        }
                     }
                 }
             }
         }
+        $objPHPExcel->disconnectWorksheets();
+        unset($objPHPExcel);
         $cwd = getcwd();
         $pm = new PathManager($cwd); // a n'utiliser qu'une fois dans une structure orientee objet
         $intro = basename($fileName, "_DATA.csv") . "_INTRO.csv";
@@ -476,10 +546,26 @@ class ExcelConverter {
             return false;
         }
     }
+
+    /**
+     * Permet de savoir si toutes les clefs
+     * obligatoires sont présentes
+     *
+     * @param $keys :
+     *          liste des clefs avec leur nombre d'occurenc
+     *          $key => nbOccurence
+     */
+    function keyExist($keys) {
+        foreach($keys as $key => $value) {
+            if($value < 1) {
+                throw new Exception("Champ $key introuvable.");
+            }
+        }
+    }
 }
 
 $exc = new ExcelConverter("analyses");
-$exc->convert();
+$exc->launch();
 
 
 
