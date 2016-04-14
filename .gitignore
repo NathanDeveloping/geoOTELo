@@ -20,3 +20,4 @@
 /src/geoOTELo/scripts/testAnalyses/
 /src/geoOTELo/scripts/testdb.php
 /src/geoOTELo/scripts/data.json
+/vendor/**/.git
