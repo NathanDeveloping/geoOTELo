@@ -236,7 +236,7 @@ abstract class PHPExcel_Reader_Abstract implements PHPExcel_Reader_IReader
 	public function securityScan($xml)
 	{
         $pattern = '/\\0?' . implode('\\0?', str_split('<!DOCTYPE')) . '\\0?/';
-        if (preg_match($pattern, $xml)) {
+        if (preg_match($pattern, $xml)) { 
             throw new PHPExcel_Reader_Exception('Detected use of ENTITY in XML, spreadsheet file load() aborted to prevent XXE/XEE attacks');
         }
         return $xml;

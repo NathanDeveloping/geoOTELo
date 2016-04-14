@@ -138,7 +138,7 @@ class PHPExcel_Shared_ZipArchive
      * @param        string        $fileName        Filename for the file in zip archive
      * @return        string  $contents        File string contents
      */
-    public function getFromName($fileName)
+    public function getFromName($fileName) 
     {
         $list = $this->_zip->listContent();
         $listCount = count($list);
@@ -158,7 +158,7 @@ class PHPExcel_Shared_ZipArchive
             $filename = substr($fileName, 1);
             $list_index = -1;
             for ($i = 0; $i < $listCount; ++$i) {
-                if (strtolower($list[$i]["filename"]) == strtolower($fileName) ||
+                if (strtolower($list[$i]["filename"]) == strtolower($fileName) || 
                     strtolower($list[$i]["stored_filename"]) == strtolower($fileName)) {
                     $list_index = $i;
                     break;

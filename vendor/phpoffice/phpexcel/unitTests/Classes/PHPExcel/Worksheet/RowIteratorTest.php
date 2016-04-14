@@ -11,7 +11,7 @@ class RowIteratorTest extends PHPUnit_Framework_TestCase
 			define('PHPEXCEL_ROOT', APPLICATION_PATH . '/');
 		}
 		require_once(PHPEXCEL_ROOT . 'PHPExcel/Autoloader.php');
-
+        
         $this->mockRow = $this->getMockBuilder('PHPExcel_Worksheet_Row')
             ->disableOriginalConstructor()
             ->getMock();
@@ -34,7 +34,7 @@ class RowIteratorTest extends PHPUnit_Framework_TestCase
         $iterator = new PHPExcel_Worksheet_RowIterator($this->mockWorksheet);
         $rowIndexResult = 1;
         $this->assertEquals($rowIndexResult, $iterator->key());
-
+        
         foreach($iterator as $key => $row) {
             $this->assertEquals($rowIndexResult++, $key);
             $this->assertInstanceOf('PHPExcel_Worksheet_Row', $row);
@@ -46,7 +46,7 @@ class RowIteratorTest extends PHPUnit_Framework_TestCase
         $iterator = new PHPExcel_Worksheet_RowIterator($this->mockWorksheet, 2, 4);
         $rowIndexResult = 2;
         $this->assertEquals($rowIndexResult, $iterator->key());
-
+        
         foreach($iterator as $key => $row) {
             $this->assertEquals($rowIndexResult++, $key);
             $this->assertInstanceOf('PHPExcel_Worksheet_Row', $row);

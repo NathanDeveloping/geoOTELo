@@ -175,8 +175,8 @@ class PHPExcel_Worksheet_RowCellIterator extends PHPExcel_Worksheet_CellIterator
 	public function prev() {
         if ($this->_position <= $this->_startColumn) {
             throw new PHPExcel_Exception(
-                "Column is already at the beginning of range (" .
-                PHPExcel_Cell::stringFromColumnIndex($this->_endColumn) . " - " .
+                "Column is already at the beginning of range (" . 
+                PHPExcel_Cell::stringFromColumnIndex($this->_endColumn) . " - " . 
                 PHPExcel_Cell::stringFromColumnIndex($this->_endColumn) . ")"
             );
         }

@@ -203,7 +203,7 @@ class PHPExcel_Writer_Excel2007_ContentTypes extends PHPExcel_Writer_Excel2007_W
 					$this->_writeDefaultContentType(
 						$objWriter, $aRibbonType, $mimeType
 					);
-				}
+				}	
 			}
 			$sheetCount = $pPHPExcel->getSheetCount();
 			for ($i = 0; $i < $sheetCount; ++$i) {

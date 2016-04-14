@@ -76,7 +76,7 @@ class PHPExcel_Chart_Title
 	 */
 	public function setCaption($caption = null) {
 		$this->_caption = $caption;
-
+        
         return $this;
 	}
 

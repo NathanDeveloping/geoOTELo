@@ -11,7 +11,7 @@ class WorksheetColumnTest extends PHPUnit_Framework_TestCase
 			define('PHPEXCEL_ROOT', APPLICATION_PATH . '/');
 		}
 		require_once(PHPEXCEL_ROOT . 'PHPExcel/Autoloader.php');
-
+        
         $this->mockWorksheet = $this->getMockBuilder('PHPExcel_Worksheet')
             ->disableOriginalConstructor()
             ->getMock();

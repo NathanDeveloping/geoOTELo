@@ -75,7 +75,7 @@ foreach(glob('./data/continents/*') as $key => $filename) {
         ->fromArray($countries, null, $column . '1');
     $objPHPExcel->addNamedRange(
         new PHPExcel_NamedRange(
-            $continent,
+            $continent, 
             $objPHPExcel->getActiveSheet(), $column . '1:' . $column . $countryCount
         )
     );
@@ -96,7 +96,7 @@ $objPHPExcel->getActiveSheet()
 
 $objPHPExcel->addNamedRange(
     new PHPExcel_NamedRange(
-        'Continents',
+        'Continents', 
         $objPHPExcel->getActiveSheet(), $continentColumn . '1:' . $continentColumn . ($key+1)
     )
 );

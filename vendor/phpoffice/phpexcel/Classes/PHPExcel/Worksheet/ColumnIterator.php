@@ -172,8 +172,8 @@ class PHPExcel_Worksheet_ColumnIterator implements Iterator
 	public function prev() {
         if ($this->_position <= $this->_startColumn) {
             throw new PHPExcel_Exception(
-                "Column is already at the beginning of range (" .
-                PHPExcel_Cell::stringFromColumnIndex($this->_endColumn) . " - " .
+                "Column is already at the beginning of range (" . 
+                PHPExcel_Cell::stringFromColumnIndex($this->_endColumn) . " - " . 
                 PHPExcel_Cell::stringFromColumnIndex($this->_endColumn) . ")"
             );
         }

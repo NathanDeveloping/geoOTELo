@@ -356,4 +356,4 @@ abstract class PHPExcel_Properties {
     return $this;
   }
 
-}
+} 

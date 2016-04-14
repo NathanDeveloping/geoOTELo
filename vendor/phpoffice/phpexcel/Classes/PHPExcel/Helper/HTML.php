@@ -3,7 +3,7 @@
 class PHPExcel_Helper_HTML
 {
     protected static $colourMap = array(
-        'aliceblue' => 'f0f8ff',
+        'aliceblue' => 'f0f8ff', 
         'antiquewhite' => 'faebd7',
         'antiquewhite1' => 'ffefdb',
         'antiquewhite2' => 'eedfcc',

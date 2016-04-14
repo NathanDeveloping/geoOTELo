@@ -489,7 +489,7 @@ class PHPExcel_Calculation_TextData {
 	 * @param	string	$oldText	String to modify
 	 * @param	int		$start		Start character
 	 * @param	int		$chars		Number of characters
-	 * @param	string	$newText	String to replace in defined position
+	 * @param	string	$newText	String to replace in defined position 
 	 * @return	string
 	 */
 	public static function REPLACE($oldText = '', $start = 1, $chars = null, $newText) {
@@ -597,8 +597,8 @@ class PHPExcel_Calculation_TextData {
 
 		if (!is_numeric($value)) {
             $numberValue = str_replace(
-                PHPExcel_Shared_String::getThousandsSeparator(),
-                '',
+                PHPExcel_Shared_String::getThousandsSeparator(), 
+                '', 
                 trim($value, " \t\n\r\0\x0B" . PHPExcel_Shared_String::getCurrencyCode())
             );
             if (is_numeric($numberValue)) {

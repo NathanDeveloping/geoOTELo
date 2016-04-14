@@ -67,7 +67,7 @@ class PHPExcel_CalcEngine_Logger {
 	 */
 	private $_cellStack;
 
-
+	
 	/**
 	 * Instantiate a Calculation engine logger
 	 *
@@ -122,13 +122,13 @@ class PHPExcel_CalcEngine_Logger {
 			$message = implode(func_get_args());
 			$cellReference = implode(' -> ', $this->_cellStack->showStack());
 			if ($this->_echoDebugLog) {
-				echo $cellReference,
-					($this->_cellStack->count() > 0 ? ' => ' : ''),
-					$message,
+				echo $cellReference, 
+					($this->_cellStack->count() > 0 ? ' => ' : ''), 
+					$message, 
 					PHP_EOL;
 			}
-			$this->_debugLog[] = $cellReference .
-				($this->_cellStack->count() > 0 ? ' => ' : '') .
+			$this->_debugLog[] = $cellReference . 
+				($this->_cellStack->count() > 0 ? ' => ' : '') . 
 				$message;
 		}
 	}	//	function _writeDebug()

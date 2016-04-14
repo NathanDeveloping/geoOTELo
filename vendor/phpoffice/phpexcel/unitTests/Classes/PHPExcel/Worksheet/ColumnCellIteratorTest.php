@@ -11,7 +11,7 @@ class ColumnCellIteratorTest extends PHPUnit_Framework_TestCase
 			define('PHPEXCEL_ROOT', APPLICATION_PATH . '/');
 		}
 		require_once(PHPEXCEL_ROOT . 'PHPExcel/Autoloader.php');
-
+        
         $this->mockCell = $this->getMockBuilder('PHPExcel_Cell')
             ->disableOriginalConstructor()
             ->getMock();
@@ -34,7 +34,7 @@ class ColumnCellIteratorTest extends PHPUnit_Framework_TestCase
         $iterator = new PHPExcel_Worksheet_ColumnCellIterator($this->mockWorksheet, 'A');
         $ColumnCellIndexResult = 1;
         $this->assertEquals($ColumnCellIndexResult, $iterator->key());
-
+        
         foreach($iterator as $key => $ColumnCell) {
             $this->assertEquals($ColumnCellIndexResult++, $key);
             $this->assertInstanceOf('PHPExcel_Cell', $ColumnCell);
@@ -46,7 +46,7 @@ class ColumnCellIteratorTest extends PHPUnit_Framework_TestCase
         $iterator = new PHPExcel_Worksheet_ColumnCellIterator($this->mockWorksheet, 'A', 2, 4);
         $ColumnCellIndexResult = 2;
         $this->assertEquals($ColumnCellIndexResult, $iterator->key());
-
+        
         foreach($iterator as $key => $ColumnCell) {
             $this->assertEquals($ColumnCellIndexResult++, $key);
             $this->assertInstanceOf('PHPExcel_Cell', $ColumnCell);
