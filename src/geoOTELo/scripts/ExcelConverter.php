@@ -8,6 +8,7 @@ use geoOTELo\util\Utility;
 use Psr\Log\LogLevel;
 use PHPExcel_IOFactory;
 use PHPExcel_Cell;
+use Exception;
 
 /**
  * Classe convertisseur
@@ -46,7 +47,7 @@ class ExcelConverter {
     public function launch() {
         // supprime le php warning document::loadHTML() : htmlParseStartTag
         libxml_use_internal_errors(true);
-        $logs = new Logger("../../../log", LogLevel::WARNING, array(
+        $logs = new Logger("../log", LogLevel::WARNING, array(
             'filename' => "log_" . date("Y-m-d") . ".txt",
             'dateFormat' => 'G:i:s'
         ));
