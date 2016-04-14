@@ -1,6 +1,5 @@
 <?php
 namespace geoOTELo\util;
-require '../../../vendor/autoload.php';
 use Exception;
 
 /**

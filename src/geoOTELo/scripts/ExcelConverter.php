@@ -1,12 +1,13 @@
 <?php
-header('Content-type: application/json;charset=utf-8');
-header('Content-language: fr');
 
-require '../../../vendor/autoload.php';
+namespace geoOTELo\scripts;
 
-use phpoffice\phpexcel;
 use geoOTELo\util\PathManager;
 use Katzgrau\KLogger\Logger;
+use geoOTELo\util\Utility;
+use Psr\Log\LogLevel;
+use PHPExcel_IOFactory;
+use PHPExcel_Cell;
 
 /**
  * Classe convertisseur
@@ -19,15 +20,21 @@ class ExcelConverter {
      * @var PathManager gestionnaire des chemins des fichiers excel
      * @var string      repertoire de depart de l'analyse des fichiers
      */
-    private $pathManager, $originDirectory;
+    private $pathManager, $originDirectory, $csvDirectory;
 
     /**
      * constructeur
      * @param $originDirectory
      *          repertoire de depart de l'analyse des fichiers
+     * @param $csvDirectory
+     *          repertoire de sortie des feuillets splittés
      */
-    public function __construct($originDirectory) {
-        $this->originDirectory = $originDirectory;
+    public function __construct($originDirectory, $csvDirectory) {
+        $this->originDirectory = realpath($originDirectory);
+        if(!Utility::folderExist($this->originDirectory)) {
+            throw new Exception("Dossier d'origine inexistant.");
+        }
+        $this->csvDirectory = $csvDirectory;
     }
 
     /**
@@ -39,24 +46,25 @@ class ExcelConverter {
     public function launch() {
         // supprime le php warning document::loadHTML() : htmlParseStartTag
         libxml_use_internal_errors(true);
-        $logs = new Logger("../../../log", Psr\Log\LogLevel::WARNING, array(
+        $logs = new Logger("../../../log", LogLevel::WARNING, array(
             'filename' => "log_" . date("Y-m-d") . ".txt",
             'dateFormat' => 'G:i:s'
         ));
         echo "Test et conversion CSV..." . PHP_EOL;
-        $this->pathManager = new PathManager(getcwd() . "\\" . $this->originDirectory);
+        $this->pathManager = new PathManager($this->originDirectory);
         foreach($this->pathManager->excelFiles as $k => $v) {
-            $print = str_replace(getcwd() . "\\", "", $v);
+            //$print = str_replace(getcwd() . "\\", "", $v);
+            $print = basename($v, "." . pathinfo($v, PATHINFO_EXTENSION));
             echo "[$print] => ";
             $this->test($v);
         }
         echo PHP_EOL . "Conversion JSON..." . PHP_EOL;
         $nameFiles = $this->pathManager->nameFiles;
-        $this->pathManager = new PathManager("CSV");
+        $this->pathManager = new PathManager($this->csvDirectory);
         foreach($nameFiles as $k => $v) {
             echo PHP_EOL . "[$v] => ";
-            $intro = "CSV/" . $v . "_INTRO.csv";
-            $data = "CSV/" . $v . "_DATA.csv";
+            $intro = $this->csvDirectory . "/" . $v . "_INTRO.csv";
+            $data = $this->csvDirectory . "/" . $v . "_DATA.csv";
             try {
                 $introArrayJSON = $this->csvToJSON($intro);
             } catch (Exception $e) {
@@ -87,6 +95,11 @@ class ExcelConverter {
      *
      *  @param $file :
      *          fichier a traiter
+     *  @throws fichier introuvable
+     *                  illisible
+     *                  mauvaise extension
+     *                  mauvais nom
+     *                  pas encodé en UTF-8
      */
     function test($file) {
         // Test : fichier existant
@@ -102,16 +115,16 @@ class ExcelConverter {
 
         //Test : nommage du fichier correct (type specifie)
         $fileName = basename($file);
-        if(!$this->stringContains($fileName, $types))
+        if(!Utility::stringContains($fileName, $types))
         {
             throw new Exception("Le fichier n'est pas nommé de façon adéquate.");
         }
         $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
         // Test : encodage du fichier en UTF-8
-        if(!$this->isUTF8($file) && $ext == "csv") {
+        if(!Utility::isUTF8($file) && $ext == "csv") {
             echo "Le fichier doit etre encode en UTF-8. Conversion..." . PHP_EOL;
-            if(!$this->toUTF8($file)) {
+            if(!Utility::toUTF8($file)) {
                 throw new Exception("Conversion en UTF-8 impossible.");
             }
         }
@@ -119,11 +132,11 @@ class ExcelConverter {
         // Test extension (CSV, XLSX et XLS)
         switch($ext) {
             case 'csv' :
-                echo "fichier CSV : deplacement vers repertoire CSV ";
-                if(!$this->folderExist("CSV")) {
-                    mkdir(getcwd() . "/CSV", 0777, true);
+                echo "fichier CSV : deplacement vers repertoire \"$this->csvDirectory\" ";
+                if(!Utility::folderExist($this->csvDirectory)) {
+                    mkdir($this->csvDirectory, 0777, true);
                 }
-                if(rename($file, "CSV\\" . $file)) {
+                if(rename($file, "$this->csvDirectory\\" . $file)) {
                     echo "OK" . PHP_EOL;
                 } else {
                     throw new Exception("Deplacement [$file] impossible");
@@ -170,13 +183,13 @@ class ExcelConverter {
      *          fichier a traiter
      */
     function xlsxToCSV($file) {
-        if(!$this->folderExist("CSV")) {
-            mkdir(getcwd() . "/CSV", 0777, true);
+        if(!Utility::folderExist($this->csvDirectory)) {
+            mkdir($this->csvDirectory, 0777, true);
         }
         $info = pathinfo($file);
         $name = basename($file, "." . $info['extension']);
-        $introName = "CSV/" . $name . "_INTRO.csv";
-        $dataName = "CSV/" . $name . "_DATA.csv";
+        $introName = "$this->csvDirectory/" . $name . "_INTRO.csv";
+        $dataName = "$this->csvDirectory/" . $name . "_DATA.csv";
         $modifiedIntro = true;
         $modifiedData = true;
         if(file_exists($introName)) {
@@ -194,15 +207,12 @@ class ExcelConverter {
             $objReader = PHPExcel_IOFactory::createReader($filetype);
             // on test le nom des feuillets
             $objPHPExcel3 = $objReader->load($file);
+            $worksheetList = $objReader->listWorksheetNames($file);
             if($modifiedIntro) {
-                if($objPHPExcel3->sheetNameExists("INTRO")) {
-                    $objReader->setLoadSheetsOnly("INTRO");
-                } else if($objPHPExcel3->sheetNameExists("intro")) {
-                    $objReader->setLoadSheetsOnly("intro");
-                } else if($objPHPExcel3->sheetNameExists("Intro")) {
-                    $objReader->setLoadSheetsOnly("Intro");
+                if(strtoupper($worksheetList[0]) == "INTRO") {
+                    $objReader->setLoadSheetsOnly($worksheetList[0]);
                 } else {
-                    throw new Exception("Feuillet INTRO ou Intro ou intro introuvable");
+                    throw new Exception("Feuillet INTRO introuvable");
                 }
                 $objPHPExcel = $objReader->load($file);
                 $writer = PHPExcel_IOFactory::createWriter($objPHPExcel, "CSV");
@@ -212,14 +222,10 @@ class ExcelConverter {
                 unset($writer, $objPHPExcel);
             }
             if($modifiedData) {
-                if($objPHPExcel3->sheetNameExists("DATA")) {
-                    $objReader->setLoadSheetsOnly("DATA");
-                } else if($objPHPExcel3->sheetNameExists("data")) {
-                    $objReader->setLoadSheetsOnly("data");
-                } else if($objPHPExcel3->sheetNameExists("Data")) {
-                    $objReader->setLoadSheetsOnly("Data");
+                if(strtoupper($worksheetList[1]) == "DATA") {
+                    $objReader->setLoadSheetsOnly($worksheetList[1]);
                 } else {
-                    throw new Exception("Feuillet DATA ou Data ou data introuvable");
+                    throw new Exception("Feuillet DATA introuvable");
                 }
                 $objPHPExcel2 = $objReader->load($file);
                 $writer2 = PHPExcel_IOFactory::createWriter($objPHPExcel2, "CSV");
@@ -240,7 +246,7 @@ class ExcelConverter {
      * @param : $objPHPExcel
      *          objet PHPExcel feuillet à traiter
      * @param : $fileName
-     *          nom du fichier
+     *          nom du fichier (pour URL de liaison au DATA)
      */
     function introToArray($objPHPExcel, $fileName) {
         $rowIterator = $objPHPExcel->getActiveSheet()->getRowIterator();
@@ -290,7 +296,7 @@ class ExcelConverter {
                             case "MAIL" :
                                 $mail = trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
                                 if(!empty($mail)) {
-                                    if(!$this->isEmail($mail)) {
+                                    if(!Utility::isEmail($mail)) {
                                         throw new Exception("Format d'e-mail incorrect.");
                                     }
                                     (isset($count["FILE_CREATOR"])) ? $count["FILE_CREATOR"]++ : $count["FILE_CREATOR"] = 1;
@@ -313,19 +319,23 @@ class ExcelConverter {
                                 break;
                             case "CREATION DATE" :
                                 $date = trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
-                                if(!$this->testDate($date)) {
-                                    throw new Exception("Format de date incorrect.");
+                                if(!empty($date)) {
+                                    if(!Utility::testDate($date)) {
+                                        throw new Exception("Format de date incorrect.");
+                                    }
+                                    (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
+                                    $arrKey["CREATION DATE"] = $date;
                                 }
-                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
-                                $arrKey["CREATION DATE"] = $date;
                                 break;
                             case "SAMPLING DATE" :
                                 $date = trim($sheet->getCellByColumnAndRow(1, $ligne)->getCalculatedValue());
-                                if(!$this->testDate($date)) {
-                                    throw new Exception("Format de date incorrect.");
+                                if(!empty($date)) {
+                                    if(!Utility::testDate($date)) {
+                                        throw new Exception("Format de date incorrect.");
+                                    }
+                                    (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
+                                    $arrKey["SAMPLING DATE"][] = $date;
                                 }
-                                (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
-                                $arrKey["SAMPLING DATE"][] = $date;
                                 break;
                             case "INSTITUTION" :
                                 (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
@@ -399,7 +409,7 @@ class ExcelConverter {
         }
         $objPHPExcel->disconnectWorksheets();
         unset($objPHPExcel);
-        $this->keyExist($count);
+        Utility::keyExist($count);
         $cwd = getcwd();
         $data = basename($fileName, "_INTRO.csv") . "_DATA.csv";
         $arrKey['DATA_URL'] = str_replace($cwd . "\\", "", $this->pathManager->getPath($data));
@@ -411,9 +421,10 @@ class ExcelConverter {
      * @param : $objPHPExcel
      *          objet PHPExcel feuillet à traiter
      * @param : $fileName
-     *          nom du fichier
+     *          nom du fichier (pour URL de liaison à l'INTRO)
      */
-    function dataToArray($objPHPExcel, $fileName) {
+    function dataToArray($objPHPExcel, $fileName)
+    {
         $sheet = $objPHPExcel->getActiveSheet();
         $highestColumn = PHPExcel_Cell::columnIndexFromString($sheet->getHighestColumn());
         $rowIterator = $sheet->getRowIterator();
@@ -421,29 +432,29 @@ class ExcelConverter {
         $units = array();
         $keys = array();
         $obj = array();
-        foreach($rowIterator as $ligne => $row) {
+        foreach ($rowIterator as $ligne => $row) {
             $cellIterator = $row->getCellIterator();
-            foreach($cellIterator as $cell) {
+            foreach ($cellIterator as $cell) {
                 $indice = PHPExcel_Cell::columnIndexFromString($cell->getColumn());
-                if($ligne == 1) {
-                    $units[trim($cell->getValue())] = $sheet->getCellByColumnAndRow($indice-1, $ligne+1)->getValue();
-                    if($indice == $highestColumn) {
+                if ($ligne == 1) {
+                    $units[trim($cell->getValue())] = $sheet->getCellByColumnAndRow($indice - 1, $ligne + 1)->getValue();
+                    if ($indice == $highestColumn) {
                         $keys = array_keys($units);
                     }
                 } else if ($ligne > 2) {
                     $value = $cell->getValue();
-                    if(!empty($value)) {
-                        if(!empty($keys[$indice-1])) {
-                            switch($keys[$indice-1]) {
+                    if (!empty($value)) {
+                        if (!empty($keys[$indice - 1])) {
+                            switch ($keys[$indice - 1]) {
                                 case "date" :
-                                    if(!$this->testDate($value)) {
+                                    if (!Utility::testDate($value)) {
                                         throw new Exception("Format de date incorrect.");
                                     }
                                 default :
-                                    $obj[$keys[$indice-1]] = $value;
+                                    $obj[$keys[$indice - 1]] = $value;
                             }
                         }
-                        if($indice == $highestColumn) {
+                        if ($indice == $highestColumn) {
                             $arrKey["SAMPLES"][] = $obj;
                         }
                     }
@@ -458,115 +469,7 @@ class ExcelConverter {
         $arrKey['INTRO_URL'] = str_replace($cwd . "\\", "", $pm->getPath($intro));
         return $arrKey;
     }
-
-    /**
-     * Permet de savoir si la chaîne contient
-     * une des chaînes du tableau passé en paramètre
-     *
-     * @param : $str
-     *          chaîne à analyser
-     * @param : $array
-     *          tableau de chaîne
-     */
-    function stringContains($str, $array) {
-        return (count(array_intersect(array_map('strtoupper', explode('_', $str)), $array)) > 0);
-    }
-
-    /**
-     * Permet de savoir si la chaîne représente
-     * une adresse e-mail
-     *
-     * @param : $email
-     *          chaîne à analyser
-     */
-    function isEmail($email) {
-        return filter_var($email, FILTER_VALIDATE_EMAIL);
-    }
-
-    /**
-     * Permet de savoir si la chaîne représente
-     * une date sous le bon format (YYYY-MM-DD)
-     *
-     * @param : $date
-     *          date à analyser
-     */
-    function testDate($date) {
-        return preg_match("/\d{4}\-\d{2}-\d{2}/", $date);
-    }
-
-    /**
-     * Permet de savoir si le fichier
-     * est encode en UTF-8
-     *
-     * @param : $file
-     *          chemin du fichier
-     *
-     */
-    function isUTF8($file) {
-        $text = file_get_contents($file);
-        return (mb_detect_encoding($text,"UTF-8, ISO-8859-1, GBK")=="UTF-8");
-    }
-
-    /**
-     * Permet de convertir un fichier
-     * en UTF-8
-     *
-     * @param : $file
-     *          chemin du fichier
-     *
-     */
-    function toUTF8($file) {
-        if(!file_exists($file)) return false;
-        $contents = file_get_contents($file);
-        if(!mb_check_encoding($file, 'UTF-8')) return false;
-        ini_set('track_errors', 1);
-        $file = fopen($file, 'w+');
-        if(!$file) {
-            throw new Exception("Le fichier est deja ouvert.");
-        }
-        fputs($file, iconv("ISO-8859-15", 'UTF-8', $contents));
-        fclose($file);
-        return true;
-    }
-
-    /**
-     * Permet de savoir si le dossier passe en
-     * parametre est existant ou non
-     *
-     * @param $folder :
-     *             nom de dossier
-     * @return true or false :
-     *              fichier existant ou non
-     */
-    function folderExist($folder) {
-        $path = realpath($folder);
-        if($path !== false AND is_dir($path)){
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Permet de savoir si toutes les clefs
-     * obligatoires sont présentes
-     *
-     * @param $keys :
-     *          liste des clefs avec leur nombre d'occurenc
-     *          $key => nbOccurence
-     */
-    function keyExist($keys) {
-        foreach($keys as $key => $value) {
-            if($value < 1) {
-                throw new Exception("Champ $key introuvable.");
-            }
-        }
-    }
 }
-
-$exc = new ExcelConverter("analyses");
-$exc->launch();
-
 
 
 
