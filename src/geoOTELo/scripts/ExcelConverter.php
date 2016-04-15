@@ -137,7 +137,7 @@ class ExcelConverter {
                 if(!Utility::folderExist($this->csvDirectory)) {
                     mkdir($this->csvDirectory, 0777, true);
                 }
-                if(rename($file, "$this->csvDirectory/" . $file)) {
+                if(rename($file, "$this->csvDirectory/" . basename($file))) {
                     echo "OK" . PHP_EOL;
                 } else {
                     throw new Exception("Deplacement [$file] impossible");
