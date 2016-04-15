@@ -57,7 +57,13 @@ class ExcelConverter {
             //$print = str_replace(getcwd() . "\\", "", $v);
             $print = basename($v, "." . pathinfo($v, PATHINFO_EXTENSION));
             echo "[$print] => ";
-            $this->test($v);
+            try {
+                $this->test($v);
+            } catch (Exception $e) {
+                $msg = $e->getMessage();
+                echo $msg . PHP_EOL;
+                $logs->error("[$v] " . $msg);
+            }
         }
         echo PHP_EOL . "Conversion JSON..." . PHP_EOL;
         $nameFiles = $this->pathManager->nameFiles;
@@ -133,14 +139,18 @@ class ExcelConverter {
         // Test extension (CSV, XLSX et XLS)
         switch($ext) {
             case 'csv' :
-                echo "fichier CSV : deplacement vers repertoire \"$this->csvDirectory\" ";
+                echo "fichier CSV : ";
+                $fileNameCSV = Utility::basenameCSV($file);
+                (Utility::isIntro($file)) ? $this->pathManager->getPath($fileNameCSV . "_DATA.csv") : $this->pathManager->getPath($fileNameCSV . "_INTRO.csv");
+                echo "fichier jumele trouve : ";
+                echo "copie vers repertoire \"$this->csvDirectory\" ";
                 if(!Utility::folderExist($this->csvDirectory)) {
                     mkdir($this->csvDirectory, 0777, true);
                 }
-                if(rename($file, "$this->csvDirectory/" . basename($file))) {
+                if(copy($file, "$this->csvDirectory/" . basename($file))) {
                     echo "OK" . PHP_EOL;
                 } else {
-                    throw new Exception("Deplacement [$file] impossible");
+                    throw new Exception("Copie [$file] impossible");
                 }
                 break;
             case 'xlsx' :

@@ -121,4 +121,24 @@ class Utility
         }
     }
 
+    static function basenameCSV($fileName) {
+        $res = null;
+        if(strstr($fileName, 'INTRO')) {
+            $res = basename($fileName, '_INTRO.csv');
+        } elseif(strstr($fileName, 'DATA')) {
+            $res = basename($fileName, '_DATA.csv');
+        } else {
+            throw new Exception("Erreur interne, fichier non traitable.");
+        }
+        return $res;
+    }
+
+    
+    static function isIntro($fileName) {
+        if(strstr($fileName, 'INTRO')) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

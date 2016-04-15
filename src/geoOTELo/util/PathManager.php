@@ -53,7 +53,16 @@ class PathManager {
                 } else {
                     $ext = strtolower(pathinfo($value, PATHINFO_EXTENSION));
                     if(in_array($ext, array("xlsx", "xls", "csv"))) {
-                        $this->nameFiles[] = basename($value, "." . $ext);
+                        if($ext == "csv") {
+                            if(Utility::isIntro($value)) {
+                                $nameFile = basename($value, "_INTRO.csv");
+                            } else {
+                                $nameFile = basename($value, "_DATA.csv");
+                            }
+                        } else {
+                            $nameFile = baseName($value, "." . $ext);
+                        }
+                        $this->nameFiles[] = $nameFile;
                         $result[] = $dir . DIRECTORY_SEPARATOR . $value;
                     }
                 }
@@ -82,7 +91,7 @@ class PathManager {
             });
         } catch (Exception $exception) {}
         if($path == null) {
-            throw new Exception("Fichier de DATA [$fileName] introuvable, generation JSON impossible.");
+            throw new Exception("Fichier jumele [$fileName] introuvable.");
         }
         return $path;
     }
