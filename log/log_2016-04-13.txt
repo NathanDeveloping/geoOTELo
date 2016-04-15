@@ -1,2 +1,0 @@
-[14:35:09] [error] [CSV/SPM_20151006_MUSTA_EA_INTRO.csv] Format de date incorrect.
-[14:35:11] [error] [CSV/WAT_20150505_MUSTA_GP_INTRO.csv] Format de date incorrect.

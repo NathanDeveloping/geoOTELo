@@ -36,6 +36,10 @@ class ExcelConverter {
             throw new Exception("Dossier d'origine inexistant.");
         }
         $this->csvDirectory = $csvDirectory;
+        if(!Utility::folderExist($this->csvDirectory)) {
+            mkdir($this->csvDirectory, 0777, true);
+        }
+        $this->csvDirectory = realpath($this->csvDirectory);
     }
 
     /**
@@ -52,7 +56,7 @@ class ExcelConverter {
             'dateFormat' => 'G:i:s'
         ));
         echo "Test et conversion CSV..." . PHP_EOL;
-        $this->pathManager = new PathManager($this->originDirectory);
+        $this->pathManager = new PathManager($this->originDirectory, $this->csvDirectory);
         foreach($this->pathManager->excelFiles as $k => $v) {
             //$print = str_replace(getcwd() . "\\", "", $v);
             $print = basename($v, "." . pathinfo($v, PATHINFO_EXTENSION));
@@ -70,8 +74,8 @@ class ExcelConverter {
         $this->pathManager = new PathManager($this->csvDirectory);
         foreach($nameFiles as $k => $v) {
             echo PHP_EOL . "[$v] => ";
-            $intro = $this->csvDirectory . "/" . $v . "_INTRO.csv";
-            $data = $this->csvDirectory . "/" . $v . "_DATA.csv";
+            $intro = $this->csvDirectory . DIRECTORY_SEPARATOR  . $v . "_INTRO.csv";
+            $data = $this->csvDirectory . DIRECTORY_SEPARATOR  . $v . "_DATA.csv";
             try {
                 $introArrayJSON = $this->csvToJSON($intro);
             } catch (Exception $e) {
@@ -142,15 +146,17 @@ class ExcelConverter {
                 echo "fichier CSV : ";
                 $fileNameCSV = Utility::basenameCSV($file);
                 (Utility::isIntro($file)) ? $this->pathManager->getPath($fileNameCSV . "_DATA.csv") : $this->pathManager->getPath($fileNameCSV . "_INTRO.csv");
-                echo "fichier jumele trouve : ";
-                echo "copie vers repertoire \"$this->csvDirectory\" ";
-                if(!Utility::folderExist($this->csvDirectory)) {
-                    mkdir($this->csvDirectory, 0777, true);
-                }
-                if(copy($file, "$this->csvDirectory/" . basename($file))) {
-                    echo "OK" . PHP_EOL;
+                echo "fichier jumele trouve ";
+                $csvFilePath = realpath($this->csvDirectory) . DIRECTORY_SEPARATOR  . basename($file);
+                if(strcmp($file, $csvFilePath) != 0) {
+                    echo ": copie vers repertoire donne ";
+                    if (copy($file, $csvFilePath)) {
+                        echo "OK" . PHP_EOL;
+                    } else {
+                        throw new Exception("copie [$file] impossible");
+                    }
                 } else {
-                    throw new Exception("Copie [$file] impossible");
+                    echo "OK" . PHP_EOL;
                 }
                 break;
             case 'xlsx' :
@@ -194,13 +200,10 @@ class ExcelConverter {
      *          fichier a traiter
      */
     function xlsxToCSV($file) {
-        if(!Utility::folderExist($this->csvDirectory)) {
-            mkdir($this->csvDirectory, 0777, true);
-        }
         $info = pathinfo($file);
         $name = basename($file, "." . $info['extension']);
-        $introName = "$this->csvDirectory/" . $name . "_INTRO.csv";
-        $dataName = "$this->csvDirectory/" . $name . "_DATA.csv";
+        $introName = "$this->csvDirectory" . DIRECTORY_SEPARATOR . $name . "_INTRO.csv";
+        $dataName = "$this->csvDirectory" . DIRECTORY_SEPARATOR . $name . "_DATA.csv";
         $modifiedIntro = true;
         $modifiedData = true;
         if(file_exists($introName)) {
@@ -423,7 +426,7 @@ class ExcelConverter {
         Utility::keyExist($count);
         $cwd = getcwd();
         $data = basename($fileName, "_INTRO.csv") . "_DATA.csv";
-        $arrKey['DATA_URL'] = str_replace($cwd . "\\", "", $this->pathManager->getPath($data));
+        $arrKey['DATA_URL'] = str_replace($cwd . DIRECTORY_SEPARATOR, "", $this->pathManager->getPath($data));
         return $arrKey;
     }
 
@@ -475,9 +478,8 @@ class ExcelConverter {
         $objPHPExcel->disconnectWorksheets();
         unset($objPHPExcel);
         $cwd = getcwd();
-        $pm = new PathManager($cwd); // a n'utiliser qu'une fois dans une structure orientee objet
         $intro = basename($fileName, "_DATA.csv") . "_INTRO.csv";
-        $arrKey['INTRO_URL'] = str_replace($cwd . "\\", "", $pm->getPath($intro));
+        $arrKey['INTRO_URL'] = str_replace($cwd . DIRECTORY_SEPARATOR , "", $this->pathManager->getPath($intro));
         return $arrKey;
     }
 }

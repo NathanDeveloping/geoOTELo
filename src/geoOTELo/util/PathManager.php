@@ -15,8 +15,10 @@ class PathManager {
      *         tableau de chemins de fichiers Excel
      * $nameFiles :
      *         tableau des noms de fichiers trouves
+     * $exludedDirectory :
+     *          repertoire à exclure de l'analyse (optionnel)
      */
-    private $originDirectory, $excelFiles, $nameFiles;
+    private $originDirectory, $excelFiles, $nameFiles, $excludedDirectory;
 
     /**
      * Constructeur
@@ -25,9 +27,12 @@ class PathManager {
      * @param $originDirectory :
      *          repertoire a partir duquel lancer le scan
      */
-    public function __construct($originDirectory) {
+    public function __construct($originDirectory, $excludedDirectory = null) {
         $this->originDirectory = $originDirectory;
         $this->nameFiles = array();
+        if(!is_null($excludedDirectory)) {
+            $this->excludedDirectory = $excludedDirectory;
+        }
         $this->excelFiles = $this->analyze($this->originDirectory);
     }
 
@@ -45,10 +50,20 @@ class PathManager {
         $scDir = scanDir($dir);
         foreach($scDir as $key => $value) {
             if(!in_array($value, array(".", ".."))) {
-                if(is_dir($dir . DIRECTORY_SEPARATOR . $value)) {
-                    $list = $this->analyze($dir . DIRECTORY_SEPARATOR . $value);
-                    if(count($list) != 0) {
-                        $result = array_merge($result, $list);
+                $dirValue = $dir . DIRECTORY_SEPARATOR . $value;
+                if(is_dir($dirValue)) {
+                    if(isset($this->excludedDirectory)) {
+                        if(strcmp($this->excludedDirectory, $dirValue) != 0) {
+                            $list = $this->analyze($dirValue);
+                            if(count($list) != 0) {
+                                $result = array_merge($result, $list);
+                            }
+                        }
+                    } else {
+                        $list = $this->analyze($dirValue);
+                        if(count($list) != 0) {
+                            $result = array_merge($result, $list);
+                        }
                     }
                 } else {
                     $ext = strtolower(pathinfo($value, PATHINFO_EXTENSION));
@@ -91,7 +106,7 @@ class PathManager {
             });
         } catch (Exception $exception) {}
         if($path == null) {
-            throw new Exception("Fichier jumele [$fileName] introuvable.");
+            throw new Exception("Fichier jumele [$this->originDirectory/$fileName] introuvable.");
         }
         return $path;
     }
@@ -111,9 +126,16 @@ class PathManager {
      */
     public function __set($attname, $attrval) {
         if (property_exists($this, $attname)) {
-            $this->$attname = $attval;
+            $this->$attname = $attrval;
             return $this->$attname;
         }
         else throw new Exception("$attname : propriete invalide");
     }
+
+    public function setExcludedDirectory($pathDir) {
+        if(is_dir($pathDir)) {
+            $this->excludedDirectory = $pathDir;
+        }
+    }
+    
 }
