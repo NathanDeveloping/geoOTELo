@@ -44,7 +44,8 @@ class ExcelConverter {
             mkdir($this->csvDirectory, 0777, true);
         }
         $this->csvDirectory = realpath($this->csvDirectory);
-        $this->db = new MongoClient("mongodb://localhost:27017");
+        $config = parse_ini_file("config/config.ini");
+        $this->db = new MongoClient("mongodb://". $config['host'] . ':' . $config['port'], array('journal' => $config['journal']));
     }
 
     /**
