@@ -92,8 +92,8 @@ class ExcelConverter {
             }
             if($introArrayJSON != null && $dataArrayJSON != null) {
                 echo " OK " . PHP_EOL . PHP_EOL;
-                //echo json_encode(array($v => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
-                $res = json_encode(array($v => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
+                echo json_encode(array($v => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
+                //$res = json_encode(array($v => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
             } else {
                 throw new Exception("Fichier INTRO ou DATA manquant");
             }
@@ -122,7 +122,7 @@ class ExcelConverter {
         if(!is_readable($file)) {
             throw new Exception("Le fichier n'est pas ouvert à la lecture.");
         }
-        $types = array("PSD.XLSX", "MIN.XLSX", "EA.XLSX", "PAC.XLSX", "MIC.XLSX", "XRF.XLSX", "GP.XLSX", "ISO.XLSX", "16S-MGE.XLSX", "DMT.XLSX", "ECOLI-ENT.XLSX", "PHAGE.XLSX", "PSD", "MIN", "EA", "PAC", "MIC", "XRF", "GP", "ISO", "DMT", "16S-MGE", "ECOLI-ENT", "PHAGE", "QMJ", "QTVAR", "QMJ.XLSX", "QTVAR.XLSX", "PSD.XLS", "MIN.XLS", "EA.XLS", "PAC.XLS", "MIC.XLS", "XRF.XLS", "GP.XLS", "ISO.XLS", "16S-MGE.XLS", "DMT.XLS", "ECOLI-ENT.XLS", "PHAGE.XLS");
+        $types = array("PSD.XLSX", "MIN.XLSX", "EA.XLSX", "PAC.XLSX", "MIC.XLSX", "XRF.XLSX", "GP.XLSX", "ISO.XLSX", "CAMPY-VIRO.XLSX", "MET-HAP.XLSX", "16S-MGE.XLSX", "DMT.XLSX", "ECOLI-ENT.XLSX", "PHAGE.XLSX", "PSD", "MIN", "EA", "PAC", "MIC", "XRF", "GP", "ISO", "DMT", "16S-MGE", "ECOLI-ENT", "PHAGE", "QMJ", "QTVAR", "CAMPY-VIRO", "MET-HAP", "QMJ.XLSX", "QTVAR.XLSX", "PSD.XLS", "MIN.XLS", "EA.XLS", "PAC.XLS", "MIC.XLS", "XRF.XLS", "GP.XLS", "ISO.XLS", "16S-MGE.XLS", "DMT.XLS", "ECOLI-ENT.XLS", "PHAGE.XLS", "CAMPY-VIRO.XLS", "MET-HAP.XLS");
 
         //Test : nommage du fichier correct (type specifie)
         $fileName = basename($file);
@@ -179,7 +179,7 @@ class ExcelConverter {
     function csvToJSON($file) {
         $res = null;
         $filetype = PHPExcel_IOFactory::identify($file);
-        $objReader = PHPExcel_IOFactory::createReader($filetype);
+        $objReader = PHPExcel_IOFactory::createReader('CSV');
         $objPHPExcel = $objReader->load($file);
         $objPHPExcel->setActiveSheetIndex(0);
         if(strpos($file, "INTRO") !== false) {
@@ -442,22 +442,36 @@ class ExcelConverter {
         $sheet = $objPHPExcel->getActiveSheet();
         $highestColumn = PHPExcel_Cell::columnIndexFromString($sheet->getHighestColumn());
         $rowIterator = $sheet->getRowIterator();
+        $specialKeys = array("PHAGE", "ECOLI", "16S-MGE", "CAMPY-VIRO", "MET-HAP");
         $arrKey = array();
         $units = array();
         $keys = array();
         $obj = array();
+        $startFields = 2;
+        if(Utility::stringContains($fileName, $specialKeys)) {
+            $startFields = 3;
+        }
         foreach ($rowIterator as $ligne => $row) {
             $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(false);
             foreach ($cellIterator as $cell) {
                 $indice = PHPExcel_Cell::columnIndexFromString($cell->getColumn());
                 if ($ligne == 1) {
-                    $units[trim($cell->getValue())] = $sheet->getCellByColumnAndRow($indice - 1, $ligne + 1)->getValue();
+                    $key = trim($cell->getValue());
+                    if($startFields == 3) {
+                        $thirdField = $sheet->getCellByColumnAndRow($indice - 1, $ligne + 2)->getValue();
+                        if(!empty($thirdField)) {
+                            $thirdField = " ($thirdField)";
+                        }
+                        $units[$key . $thirdField] = $sheet->getCellByColumnAndRow($indice - 1, $ligne + 1)->getValue();
+                    } else {
+                        $units[$key] = $sheet->getCellByColumnAndRow($indice - 1, $ligne + 1)->getValue();
+                    }
                     if ($indice == $highestColumn) {
                         $keys = array_keys($units);
                     }
-                } else if ($ligne > 2) {
+                } else if ($ligne > $startFields) {
                     $value = $cell->getValue();
-                    if (!empty($value)) {
                         if (!empty($keys[$indice - 1])) {
                             switch ($keys[$indice - 1]) {
                                 case "date" :
@@ -471,7 +485,6 @@ class ExcelConverter {
                         if ($indice == $highestColumn) {
                             $arrKey["SAMPLES"][] = $obj;
                         }
-                    }
                 }
             }
         }

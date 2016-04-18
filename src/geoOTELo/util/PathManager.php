@@ -131,11 +131,4 @@ class PathManager {
         }
         else throw new Exception("$attname : propriete invalide");
     }
-
-    public function setExcludedDirectory($pathDir) {
-        if(is_dir($pathDir)) {
-            $this->excludedDirectory = $pathDir;
-        }
-    }
-    
 }
