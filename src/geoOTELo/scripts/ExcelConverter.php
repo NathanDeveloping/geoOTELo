@@ -10,6 +10,7 @@ use PHPExcel_IOFactory;
 use PHPExcel_Cell;
 use Exception;
 use MongoClient;
+use MongoDuplicateKeyException;
 
 /**
  * Classe convertisseur
@@ -64,7 +65,6 @@ class ExcelConverter {
         echo "Test et conversion CSV..." . PHP_EOL;
         $this->pathManager = new PathManager($this->originDirectory, $this->csvDirectory);
         foreach($this->pathManager->excelFiles as $k => $v) {
-            //$print = str_replace(getcwd() . "\\", "", $v);
             $print = basename($v, "." . pathinfo($v, PATHINFO_EXTENSION));
             echo "[$print] => ";
             try {
@@ -80,6 +80,7 @@ class ExcelConverter {
         $this->pathManager = new PathManager($this->csvDirectory);
         foreach($nameFiles as $k => $v) {
             echo PHP_EOL . "[$v] => ";
+            //if($this->isModified($this->originDirectory . $v . ".")) 
             $intro = $this->csvDirectory . DIRECTORY_SEPARATOR  . $v . "_INTRO.csv";
             $data = $this->csvDirectory . DIRECTORY_SEPARATOR  . $v . "_DATA.csv";
             try {
@@ -97,13 +98,13 @@ class ExcelConverter {
                 $logs->error($msg);
             }
             if($introArrayJSON != null && $dataArrayJSON != null) {
-                echo " OK " . PHP_EOL . PHP_EOL;
                 $collection = $this->getCollection($v);
                 $collectionObject = $this->db->selectCollection('MOBISED', $collection);
                 try {
-                    $collectionObject->insert(array($v => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
-                } catch(MongoCursorException $e) {
-                    echo "Analyse déjà insérée. \n";
+                    $collectionObject->insert(array('_id' => $v, "INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON));
+                    echo " OK " . PHP_EOL . PHP_EOL;
+                } catch(MongoDuplicateKeyException $e) {
+                    echo "Analyse deja inseree.";
                 }
             } else {
                 throw new Exception("Fichier INTRO ou DATA manquant");
@@ -537,6 +538,35 @@ class ExcelConverter {
             default :
                 throw new Exception("Nom de fichier invalide.");
         }
+    }
+
+    /**
+     * Methode permettant de savoir
+     * si le fichier a traiter a ete modifie
+     * depuis le dernier traitement
+     *
+     * @param $file
+     *          fichier a traiter
+     * @return bool
+     *          modifie ou non
+     */
+    function isModified($file) {
+        $modified = true;
+        $info = pathinfo($file);
+        $name = basename($file, "." . $info['extension']);
+        $introName = "$this->csvDirectory" . DIRECTORY_SEPARATOR . $name . "_INTRO.csv";
+        $dataName = "$this->csvDirectory" . DIRECTORY_SEPARATOR . $name . "_DATA.csv";
+        if(file_exists($introName)) {
+            if(filemtime($file) < filemtime($introName)) {
+                $modified = false;
+            }
+        }
+        if(file_exists($dataName)) {
+            if(filemtime($file) < filemtime($dataName)) {
+                $modified = false;
+            }
+        }
+        return $modified;
     }
 }
 

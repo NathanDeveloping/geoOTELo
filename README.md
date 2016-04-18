@@ -8,8 +8,7 @@ La branche json_mobised consiste à extraire les données du projet MOBISED cont
 
 * PHP version >= 5.2.0
 * PHP extension php_mbstring activée
-* PHP extension php_openssl activée
-* PHP extension php_mongodb installée et activée (disponible ici : [PHP MongoDB Extension PECL](https://pecl.php.net/package/mongodb))
+* PHP extension php_mongo installée et activée (disponible ici : [PHP MongoDB Extension PECL](https://pecl.php.net/package/mongodb))
 * ajouter dans php.ini : *mongo.allow_empty_keys = 1*
 
 ## Installation
