@@ -9,6 +9,7 @@ use Psr\Log\LogLevel;
 use PHPExcel_IOFactory;
 use PHPExcel_Cell;
 use Exception;
+use MongoClient;
 
 /**
  * Classe convertisseur
@@ -18,10 +19,13 @@ use Exception;
 class ExcelConverter {
 
     /**
-     * @var PathManager gestionnaire des chemins des fichiers excel
-     * @var string      repertoire de depart de l'analyse des fichiers
+     * @var PathManager         gestionnaire des chemins des fichiers excel
+     * @var $originDirectory    repertoire de depart de l'analyse des fichiers
+     * @var csvDirectory        repertoire d'arrivee des fichiers csv
+     * @var $db                 base de donnee MongoDB
      */
     private $pathManager, $originDirectory, $csvDirectory;
+    public $db;
 
     /**
      * constructeur
@@ -40,6 +44,7 @@ class ExcelConverter {
             mkdir($this->csvDirectory, 0777, true);
         }
         $this->csvDirectory = realpath($this->csvDirectory);
+        $this->db = new MongoClient("mongodb://localhost:27017");
     }
 
     /**
@@ -92,8 +97,13 @@ class ExcelConverter {
             }
             if($introArrayJSON != null && $dataArrayJSON != null) {
                 echo " OK " . PHP_EOL . PHP_EOL;
-                echo json_encode(array($v => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
-                //$res = json_encode(array($v => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
+                $collection = $this->getCollection($v);
+                $collectionObject = $this->db->selectCollection('MOBISED', $collection);
+                try {
+                    $collectionObject->insert(array($v => array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON)));
+                } catch(MongoCursorException $e) {
+                    echo "Analyse déjà insérée. \n";
+                }
             } else {
                 throw new Exception("Fichier INTRO ou DATA manquant");
             }
@@ -475,8 +485,10 @@ class ExcelConverter {
                         if (!empty($keys[$indice - 1])) {
                             switch ($keys[$indice - 1]) {
                                 case "date" :
-                                    if (!Utility::testDate($value)) {
-                                        throw new Exception("Format de date incorrect.");
+                                    if(!empty($value)) {
+                                        if (!Utility::testDate($value)) {
+                                            throw new Exception("Format de date incorrect.");
+                                        }
                                     }
                                 default :
                                     $obj[$keys[$indice - 1]] = $value;
@@ -494,6 +506,36 @@ class ExcelConverter {
         $intro = basename($fileName, "_DATA.csv") . "_INTRO.csv";
         $arrKey['INTRO_URL'] = str_replace($cwd . DIRECTORY_SEPARATOR , "", $this->pathManager->getPath($intro));
         return $arrKey;
+    }
+
+    /**
+     * Methode permettant de connaitre la collection
+     * associee au ficher via son nom
+     *
+     * @param $fileName
+     *          nom du fichier
+     * @return string
+     *          collection associee
+     * @throws Exception
+     */
+    function getCollection($fileName) {
+        $arrFilename = explode('_', $fileName);
+        switch($arrFilename[0]) {
+            case 'HYDRO' :
+                return 'hydrology';
+                break;
+            case 'SED' :
+                return 'sediment';
+                break;
+            case 'SPM' :
+                return 'spm';
+                break;
+            case 'WAT' :
+                return 'water';
+                break;
+            default :
+                throw new Exception("Nom de fichier invalide.");
+        }
     }
 }
 
