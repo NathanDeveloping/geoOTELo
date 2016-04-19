@@ -71,7 +71,7 @@ class ExcelConverter {
         libxml_use_internal_errors(true);
         echo "Test et conversion CSV..." . PHP_EOL;
         $this->pathManager = new PathManager($this->originDirectory, $this->csvDirectory);
-        foreach($this->pathManager->excelFiles as $k => $v) {
+        foreach($this->pathManager->modifiedExcelFiles as $k => $v) {
             $print = basename($v, "." . pathinfo($v, PATHINFO_EXTENSION));
             echo "[$print] => ";
             try {
@@ -80,6 +80,7 @@ class ExcelConverter {
                 $msg = $e->getMessage();
                 echo $msg . PHP_EOL;
                 $this->logger->error("[$v] " . $msg);
+                unlink($v);
             }
         }
         echo PHP_EOL . "Conversion JSON..." . PHP_EOL;
@@ -87,35 +88,44 @@ class ExcelConverter {
         $this->pathManager = new PathManager($this->csvDirectory);
         foreach($nameFiles as $k => $v) {
             echo PHP_EOL . "[$k] => ";
-            if($this->isModified($this->originDirectory . $k . "." . $v)) {
-                $intro = $this->csvDirectory . DIRECTORY_SEPARATOR . $k . "_INTRO.csv";
-                $data = $this->csvDirectory . DIRECTORY_SEPARATOR . $k . "_DATA.csv";
+            $intro = $this->csvDirectory . DIRECTORY_SEPARATOR . $k . "_INTRO.csv";
+            $data = $this->csvDirectory . DIRECTORY_SEPARATOR . $k . "_DATA.csv";
+            try {
+                $introArrayJSON = $this->csvToJSON($intro);
+            } catch (Exception $e) {
+                $msg = "[$intro] " . $e->getMessage();
+                echo $msg . PHP_EOL;
+                $this->logger->error($msg);
+                unlink($intro);
+            }
+            try {
+                $dataArrayJSON = $this->csvToJSON($data);
+            } catch (Exception $e) {
+                $msg = "[$data] " . $e->getMessage();
+                echo $msg;
+                $this->logger->error($msg);
+                unlink($data);
+            }
+            if ($introArrayJSON != null && $dataArrayJSON != null) {
+                $collection = $this->getCollection($k);
+                $collectionObject = $this->db->selectCollection('MOBISED', $collection);
                 try {
-                    $introArrayJSON = $this->csvToJSON($intro);
-                } catch (Exception $e) {
-                    $msg = "[$intro] " . $e->getMessage();
-                    echo $msg . PHP_EOL;
-                    $this->logger->error($msg);
-                }
-                try {
-                    $dataArrayJSON = $this->csvToJSON($data);
-                } catch (Exception $e) {
-                    $msg = "[$data] " . $e->getMessage();
-                    echo $msg;
-                    $this->logger->error($msg);
-                }
-                if ($introArrayJSON != null && $dataArrayJSON != null) {
-                    $collection = $this->getCollection($k);
-                    $collectionObject = $this->db->selectCollection('MOBISED', $collection);
+                    $collectionObject->insert(array('_id' => $k, "INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON));
+                    echo " OK " . PHP_EOL . PHP_EOL;
+                } catch (MongoDuplicateKeyException $e) {
+                    echo "Analyse deja inseree, modification en cours." . PHP_EOL;
                     try {
-                        $collectionObject->insert(array('_id' => $k, "INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON));
-                        echo " OK " . PHP_EOL . PHP_EOL;
-                    } catch (MongoDuplicateKeyException $e) {
-                        echo "Analyse deja inseree.";
+                        $collectionObject->update(array('_id' => $k), array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON));
+                    } catch(Exception $e) {
+                        $msg = $e->getMessage();
+                        echo $msg;
+                        $this->logger->error($msg);
+                        unlink($intro);
+                        unlink($data);
                     }
-                } else {
-                    throw new Exception("Fichier INTRO ou DATA manquant");
                 }
+            } else {
+                throw new Exception("Fichier INTRO ou DATA manquant");
             }
         }
     }
@@ -298,16 +308,16 @@ class ExcelConverter {
                 if($cell->getColumn() == 'A') {
                     $key = strtoupper(trim($cell->getCalculatedValue()));
                     if($key != "") {
-                    /**
-                     * Mise en forme du tableau :
-                     * TITLE, DATA DESCRIPTION, LANGUAGE et PROJECT NAME : valeurs sur la colonne B
-                     * NAME, FIRST NAME, MAIL : valeurs des objets FILE CREATOR et OPERATOR (utilisation de la variable temp $activeField)
-                     * CREATION DATE, SAMPLING DATE : champ simple et champ multiple (gestion format de la date)
-                     * INSTITUTION, SCIENTIFIC FIELD : valeurs sur plusieurs lignes dans le tableur
-                     * STATION, SAMPLE KIND, MEASUREMENT : champ multiple sur plusieurs colonnes
-                     * METHODOLOGY : champ multiple avec champs specifies en colonne B
-                     * ACRONYM : champ simple sur deux colonnes
-                     */
+                        /**
+                         * Mise en forme du tableau :
+                         * TITLE, DATA DESCRIPTION, LANGUAGE et PROJECT NAME : valeurs sur la colonne B
+                         * NAME, FIRST NAME, MAIL : valeurs des objets FILE CREATOR et OPERATOR (utilisation de la variable temp $activeField)
+                         * CREATION DATE, SAMPLING DATE : champ simple et champ multiple (gestion format de la date)
+                         * INSTITUTION, SCIENTIFIC FIELD : valeurs sur plusieurs lignes dans le tableur
+                         * STATION, SAMPLE KIND, MEASUREMENT : champ multiple sur plusieurs colonnes
+                         * METHODOLOGY : champ multiple avec champs specifies en colonne B
+                         * ACRONYM : champ simple sur deux colonnes
+                         */
                         switch($key) {
                             case "TITLE" :
                             case "DATA DESCRIPTION" :
@@ -478,6 +488,12 @@ class ExcelConverter {
                 $indice = PHPExcel_Cell::columnIndexFromString($cell->getColumn());
                 if ($ligne == 1) {
                     $key = trim($cell->getValue());
+                    if (strpos($key, ".") !== false) {
+                        $msg = "\t Caractere '.' detecte dans la clef [$key] : suppression";
+                        echo PHP_EOL . $msg . PHP_EOL;
+                        $this->logger->warning($msg);
+                        $key = preg_replace('/./', '', $key);
+                    }
                     if($startFields == 3) {
                         $thirdField = $sheet->getCellByColumnAndRow($indice - 1, $ligne + 2)->getValue();
                         if(!empty($thirdField)) {
@@ -492,21 +508,21 @@ class ExcelConverter {
                     }
                 } else if ($ligne > $startFields) {
                     $value = $cell->getValue();
-                        if (!empty($keys[$indice - 1])) {
-                            switch ($keys[$indice - 1]) {
-                                case "date" :
-                                    if(!empty($value)) {
-                                        if (!Utility::testDate($value)) {
-                                            throw new Exception("Format de date incorrect.");
-                                        }
+                    if (!empty($keys[$indice - 1])) {
+                        switch ($keys[$indice - 1]) {
+                            case "date" :
+                                if(!empty($value)) {
+                                    if (!Utility::testDate($value)) {
+                                        throw new Exception("Format de date incorrect.");
                                     }
-                                default :
-                                    $obj[$keys[$indice - 1]] = $value;
-                            }
+                                }
+                            default :
+                                $obj[$keys[$indice - 1]] = $value;
                         }
-                        if ($indice == $highestColumn) {
-                            $arrKey["SAMPLES"][] = $obj;
-                        }
+                    }
+                    if ($indice == $highestColumn) {
+                        $arrKey["SAMPLES"][] = $obj;
+                    }
                 }
             }
         }
@@ -548,34 +564,7 @@ class ExcelConverter {
         }
     }
 
-    /**
-     * Methode permettant de savoir
-     * si le fichier a traiter a ete modifie
-     * depuis le dernier traitement
-     *
-     * @param $file
-     *          fichier a traiter
-     * @return bool
-     *          modifie ou non
-     */
-    function isModified($file) {
-        $modified = true;
-        $info = pathinfo($file);
-        $name = basename($file, "." . $info['extension']);
-        $introName = "$this->csvDirectory" . DIRECTORY_SEPARATOR . $name . "_INTRO.csv";
-        $dataName = "$this->csvDirectory" . DIRECTORY_SEPARATOR . $name . "_DATA.csv";
-        if(file_exists($introName)) {
-            if(filemtime($file) < filemtime($introName)) {
-                $modified = false;
-            }
-        }
-        if(file_exists($dataName)) {
-            if(filemtime($file) < filemtime($dataName)) {
-                $modified = false;
-            }
-        }
-        return $modified;
-    }
+
 }
 
 

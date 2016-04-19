@@ -17,8 +17,10 @@ class PathManager {
      *         tableau des noms de fichiers trouves
      * $exludedDirectory :
      *          repertoire à exclure de l'analyse (optionnel)
+     * $modifiedExcelFiles :
+     *          tableau des chemins vers fichiers Excel modifies
      */
-    private $originDirectory, $excelFiles, $nameFiles, $excludedDirectory;
+    private $originDirectory, $excelFiles, $modifiedExcelFiles, $nameFiles, $excludedDirectory;
 
     /**
      * Constructeur
@@ -30,10 +32,11 @@ class PathManager {
     public function __construct($originDirectory, $excludedDirectory = null) {
         $this->originDirectory = $originDirectory;
         $this->nameFiles = array();
+        $this->excelFiles = array();
         if(!is_null($excludedDirectory)) {
             $this->excludedDirectory = $excludedDirectory;
         }
-        $this->excelFiles = $this->analyze($this->originDirectory);
+        $this->modifiedExcelFiles = $this->analyze($this->originDirectory);
     }
 
     /**
@@ -68,17 +71,45 @@ class PathManager {
                 } else {
                     $ext = strtolower(pathinfo($value, PATHINFO_EXTENSION));
                     if(in_array($ext, array("xlsx", "xls", "csv"))) {
+                        $modifiedCSV = false;
+                        $modifiedIntro = false;
+                        $modifiedData = false;
                         if($ext == "csv") {
                             if(Utility::isIntro($value)) {
                                 $nameFile = basename($value, "_INTRO.csv");
                             } else {
                                 $nameFile = basename($value, "_DATA.csv");
                             }
+                            if(is_dir($this->excludedDirectory)) {
+                                $csvFile = $this->excludedDirectory . DIRECTORY_SEPARATOR . basename($value);
+                                if(file_exists($csvFile)) {
+                                    if(filemtime($csvFile) < filemtime($dir . DIRECTORY_SEPARATOR . $value)) {
+                                        $modifiedCSV = true;
+                                    }
+                                } else $modifiedIntro = true;
+                            }
                         } else {
-                            $nameFile = baseName($value, "." . $ext);
+                            $nameFile = basename($value, "." . $ext);
+                            if(is_dir($this->excludedDirectory)) {
+                                $introFile = $this->excludedDirectory . DIRECTORY_SEPARATOR . "$nameFile" . "_INTRO.csv";
+                                $dataFile = $this->excludedDirectory . DIRECTORY_SEPARATOR . "$nameFile" . "_DATA.csv";
+                                if(file_exists($introFile)) {
+                                    if(filemtime($introFile) < filemtime($dir . DIRECTORY_SEPARATOR . $value)) {
+                                        $modifiedIntro = true;
+                                    }
+                                } else $modifiedIntro = true;
+                                if(file_exists($dataFile)) {
+                                    if(filemtime($dataFile) < filemtime($dir . DIRECTORY_SEPARATOR . $value)) {
+                                        $modifiedData = true;
+                                    }
+                                } else $modifiedIntro = true;
+                            }
                         }
-                        $this->nameFiles[$nameFile] = $ext;
-                        $result[] = $dir . DIRECTORY_SEPARATOR . $value;
+                        if($modifiedCSV || $modifiedIntro || $modifiedData) {
+                            $this->nameFiles[$nameFile] = $dir . DIRECTORY_SEPARATOR . $value;
+                            $result[] = $dir . DIRECTORY_SEPARATOR . $value;
+                        }
+                        $this->excelFiles[] = $dir . DIRECTORY_SEPARATOR . $value;
                     }
                 }
             }
@@ -106,7 +137,7 @@ class PathManager {
             });
         } catch (Exception $exception) {}
         if($path == null) {
-            throw new Exception("Fichier jumele [$this->originDirectory/$fileName] introuvable.");
+            throw new Exception("Fichier jumele [$this->originDirectory" . DIRECTORY_SEPARATOR . "$fileName] introuvable.");
         }
         return $path;
     }
