@@ -24,8 +24,9 @@ class ExcelConverter {
      * @var $originDirectory    repertoire de depart de l'analyse des fichiers
      * @var csvDirectory        repertoire d'arrivee des fichiers csv
      * @var $db                 base de donnee MongoDB
+     * @var $logger             classe de sauvegarde de logs
      */
-    private $pathManager, $originDirectory, $csvDirectory;
+    private $pathManager, $originDirectory, $csvDirectory, $logger;
     public $db;
 
     /**
@@ -46,7 +47,17 @@ class ExcelConverter {
         }
         $this->csvDirectory = realpath($this->csvDirectory);
         $config = parse_ini_file("config/config.ini");
-        $this->db = new MongoClient("mongodb://". $config['host'] . ':' . $config['port'], array('journal' => $config['journal']));
+        $this->logger = new Logger("../log", LogLevel::WARNING, array(
+            'filename' => "log_" . date("Y-m-d") . ".txt",
+            'dateFormat' => 'G:i:s'
+        ));
+        try {
+            $this->db = new MongoClient("mongodb://" . $config['host'] . ':' . $config['port'], array('journal' => $config['journal']));
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            $this->logger->error($e->getMessage());
+            exit();
+        }
     }
 
     /**
@@ -58,10 +69,6 @@ class ExcelConverter {
     public function launch() {
         // supprime le php warning document::loadHTML() : htmlParseStartTag
         libxml_use_internal_errors(true);
-        $logs = new Logger("../log", LogLevel::WARNING, array(
-            'filename' => "log_" . date("Y-m-d") . ".txt",
-            'dateFormat' => 'G:i:s'
-        ));
         echo "Test et conversion CSV..." . PHP_EOL;
         $this->pathManager = new PathManager($this->originDirectory, $this->csvDirectory);
         foreach($this->pathManager->excelFiles as $k => $v) {
@@ -72,42 +79,43 @@ class ExcelConverter {
             } catch (Exception $e) {
                 $msg = $e->getMessage();
                 echo $msg . PHP_EOL;
-                $logs->error("[$v] " . $msg);
+                $this->logger->error("[$v] " . $msg);
             }
         }
         echo PHP_EOL . "Conversion JSON..." . PHP_EOL;
         $nameFiles = $this->pathManager->nameFiles;
         $this->pathManager = new PathManager($this->csvDirectory);
         foreach($nameFiles as $k => $v) {
-            echo PHP_EOL . "[$v] => ";
-            //if($this->isModified($this->originDirectory . $v . ".")) 
-            $intro = $this->csvDirectory . DIRECTORY_SEPARATOR  . $v . "_INTRO.csv";
-            $data = $this->csvDirectory . DIRECTORY_SEPARATOR  . $v . "_DATA.csv";
-            try {
-                $introArrayJSON = $this->csvToJSON($intro);
-            } catch (Exception $e) {
-                $msg = "[$intro] " . $e->getMessage();
-                echo $msg . PHP_EOL;
-                $logs->error($msg);
-            }
-            try {
-               $dataArrayJSON = $this->csvToJSON($data);
-            } catch (Exception $e) {
-                $msg = "[$data] " .$e->getMessage();
-                echo $msg;
-                $logs->error($msg);
-            }
-            if($introArrayJSON != null && $dataArrayJSON != null) {
-                $collection = $this->getCollection($v);
-                $collectionObject = $this->db->selectCollection('MOBISED', $collection);
+            echo PHP_EOL . "[$k] => ";
+            if($this->isModified($this->originDirectory . $k . "." . $v)) {
+                $intro = $this->csvDirectory . DIRECTORY_SEPARATOR . $k . "_INTRO.csv";
+                $data = $this->csvDirectory . DIRECTORY_SEPARATOR . $k . "_DATA.csv";
                 try {
-                    $collectionObject->insert(array('_id' => $v, "INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON));
-                    echo " OK " . PHP_EOL . PHP_EOL;
-                } catch(MongoDuplicateKeyException $e) {
-                    echo "Analyse deja inseree.";
+                    $introArrayJSON = $this->csvToJSON($intro);
+                } catch (Exception $e) {
+                    $msg = "[$intro] " . $e->getMessage();
+                    echo $msg . PHP_EOL;
+                    $this->logger->error($msg);
                 }
-            } else {
-                throw new Exception("Fichier INTRO ou DATA manquant");
+                try {
+                    $dataArrayJSON = $this->csvToJSON($data);
+                } catch (Exception $e) {
+                    $msg = "[$data] " . $e->getMessage();
+                    echo $msg;
+                    $this->logger->error($msg);
+                }
+                if ($introArrayJSON != null && $dataArrayJSON != null) {
+                    $collection = $this->getCollection($k);
+                    $collectionObject = $this->db->selectCollection('MOBISED', $collection);
+                    try {
+                        $collectionObject->insert(array('_id' => $k, "INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON));
+                        echo " OK " . PHP_EOL . PHP_EOL;
+                    } catch (MongoDuplicateKeyException $e) {
+                        echo "Analyse deja inseree.";
+                    }
+                } else {
+                    throw new Exception("Fichier INTRO ou DATA manquant");
+                }
             }
         }
     }

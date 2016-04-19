@@ -77,7 +77,7 @@ class PathManager {
                         } else {
                             $nameFile = baseName($value, "." . $ext);
                         }
-                        $this->nameFiles[] = $nameFile;
+                        $this->nameFiles[$nameFile] = $ext;
                         $result[] = $dir . DIRECTORY_SEPARATOR . $value;
                     }
                 }
