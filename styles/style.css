@@ -1,0 +1,21 @@
+header {
+    margin:5px;
+    margin-bottom: 0px;
+}
+
+#map {
+    margin:5px;
+    position: absolute;
+    left: 0;
+    width: 99% !important;
+    height: 93% !important;
+}
+
+#nav {
+    margin-bottom:0px;
+}
+
+body {
+    width:100%;
+    height:100%;
+}
