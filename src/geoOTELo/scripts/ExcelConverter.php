@@ -80,7 +80,11 @@ class ExcelConverter {
                 $msg = $e->getMessage();
                 echo $msg . PHP_EOL;
                 $this->logger->error("[$v] " . $msg);
-                unlink($v);
+                $intro = $this->csvDirectory . DIRECTORY_SEPARATOR . $print . "_INTRO.csv";
+                $data = $this->csvDirectory . DIRECTORY_SEPARATOR . $print . "_DATA.csv";
+                if(file_exists($intro)) unlink($intro);
+                if(file_exists($data)) unlink($data);
+                $this->pathManager->deleteFromNamefiles($print);
             }
         }
         echo PHP_EOL . "Conversion JSON..." . PHP_EOL;
@@ -158,7 +162,7 @@ class ExcelConverter {
         $fileName = basename($file);
         if(!Utility::stringContains($fileName, $types))
         {
-            throw new Exception("Le fichier n'est pas nommé de façon adéquate.");
+            throw new Exception("Le fichier n'est pas nomme de facon adequate.");
         }
         $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
@@ -399,7 +403,8 @@ class ExcelConverter {
                                     "ABBREVIATION" => trim($sheet->getCellByColumnAndRow(2, $ligne)->getCalculatedValue()),
                                     "LONGITUDE" => trim($sheet->getCellByColumnAndRow(3, $ligne)->getFormattedValue()),
                                     "LATITUDE" => trim($sheet->getCellByColumnAndRow(4, $ligne)->getValue()),
-                                    "ELEVATION" => trim($sheet->getCellByColumnAndRow(5, $ligne)->getFormattedValue())
+                                    "ELEVATION" => trim($sheet->getCellByColumnAndRow(5, $ligne)->getFormattedValue()),
+                                    "DESCRIPTION" => trim($sheet->getCellByColumnAndRow(6, $ligne)->getValue())
                                 );
                                 $arrKey["STATION"][] = $obj;
                                 $obj = array();

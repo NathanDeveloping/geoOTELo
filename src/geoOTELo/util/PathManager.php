@@ -41,7 +41,8 @@ class PathManager {
 
     /**
      * Methode renvoi tous les repertoires, sous repertoires
-     * et fichiers excel à partir d'un repertoire donne
+     * et fichiers excel ayant ete modifies (selon date fichier CSV)
+     * à partir d'un repertoire donne
      *
      * @param $dir :
      *          repertoire a partir duquel lancer le scan
@@ -140,6 +141,15 @@ class PathManager {
             throw new Exception("Fichier jumele [$this->originDirectory" . DIRECTORY_SEPARATOR . "$fileName] introuvable.");
         }
         return $path;
+    }
+
+    /**
+     * Méthode supprime un chemin de fichier dans
+     * la listre de fichiers
+     * @param $key
+     */
+    public function deleteFromNamefiles($key) {
+        unset($this->nameFiles[$key]);
     }
 
     /**
