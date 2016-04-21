@@ -5,7 +5,7 @@
  * Date: 13/04/2016
  * Time: 16:43
  */
-namespace geoOTELo\util;
+namespace geoOTELo\utils;
 /**
  * Class Utility
  * rassemble toutes les méthodes utilitaires
@@ -14,5 +14,9 @@ namespace geoOTELo\util;
  */
 class Utility
 {
-    
+    static function distinctValidStations($arrStations) {
+        return array_filter($arrStations, function($v) {
+            return (strstr($v['LATITUDE'], "°") && strstr($v['LONGITUDE'], "°"));
+        });
+    }
 }

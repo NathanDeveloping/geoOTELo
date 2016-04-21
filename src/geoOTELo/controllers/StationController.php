@@ -10,6 +10,7 @@ namespace geoOTELo\controllers;
 
 use Slim\Slim;
 use MongoCollection;
+use geoOTELo\utils\Utility;
 
 class StationController
 {
@@ -25,17 +26,16 @@ class StationController
 
     public function getStations()
     {
-//        $app = Slim::getInstance();
-//        $app->response->headers->set('Content-Type', 'application/json');
+        $app = Slim::getInstance();
+        $app->response->headers->set('Content-Type', 'application/json');
         $arr = $this->water->distinct("INTRO.STATION");
         $arr = array_merge($arr, $this->spm->distinct("INTRO.STATION"));
         $arr = array_merge($arr, $this->sediment->distinct("INTRO.STATION"));
         $arr = array_merge($arr, $this->hydrology->distinct("INTRO.STATION"));
-        echo "AVANT : " . count($arr) . "<br />";
-        var_dump($arr);
-//        $arr = array_unique($arr, SORT_REGULAR);
-//        echo "APRES : " . count($arr) . "<br />";
-//        var_dump($arr);
+        $arr = array_unique($arr, SORT_REGULAR);
+        $arr = Utility::distinctValidStations($arr);
+        $arr = array_values($arr);
+        echo json_encode($arr);
     }
 
 }
