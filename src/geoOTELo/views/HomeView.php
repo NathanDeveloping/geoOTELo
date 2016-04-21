@@ -41,9 +41,20 @@ class HomeView
             <div class="navbar-header">
                 <a class="navbar-brand" href="#">GeoOTELo</a>
             </div>
+            <div class="pull-right">
+                <ul class="nav navbar-nav">
+                    <li><button type="submit" class="btn navbar-btn btn-default" id="filterButton">Filtrer</button></li>
+                </ul>     
+            </div>
         </div>
     </nav>
 </header>
+
+<nav id="wrapper" class="navbar navbar-default">
+                <ul class="nav nav-pills nav-stacked">
+                    <li role="presentation" class="active"><a href="#">Type de prélèvement</a></li>
+                </ul>     
+    </nav>
 
 
 <section id="map" class="col-md-6">

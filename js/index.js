@@ -10,6 +10,7 @@ var APP = (function() {
         modules: {},
         init: function () {
             APP.modules.service.getStations(APP.modules.map.affichageStations);
+            $('#filterButton').click(APP.modules.affichage.showFilterMenu);
         }
     }
 })();
@@ -23,7 +24,7 @@ var APP = (function() {
  */
 APP.modules.map = (function() {
 
-    var map;
+    var map, markers;
 
     return {
 
@@ -35,9 +36,10 @@ APP.modules.map = (function() {
          */
         init : function(htmlContainer) {
             map = L.map(htmlContainer, {
-                center: [48.8534100, 2.3488000],
-                zoom : 5
+                center: [49.230141, 6.008881],
+                zoom : 14
             });
+            markers = L.layerGroup();
             L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
@@ -57,11 +59,32 @@ APP.modules.map = (function() {
             data.forEach(function(k, v) {
                 long = APP.modules.utility.parseDMS(k.LONGITUDE.replace(/\s+/g, ''));
                 lat = APP.modules.utility.parseDMS(k.LATITUDE.replace(/\s+/g, ''));
-                L.marker([lat, long], {icon: stationIcon}).bindLabel(k.ABBREVIATION).addTo(map);
+                markers.addLayer(L.marker([lat, long], {icon: stationIcon}).bindLabel(k.ABBREVIATION).addTo(map));
             });
+        },
+
+        /**
+         * methode permettant de supprimer
+         * tous les markers presents sur la map
+         *
+         */
+        clearMarkers : function() {
+          markers.clearLayers();
         }
 
     }
+})();
+
+APP.modules.affichage =(function() {
+    
+    return {
+
+        showFilterMenu : function() {
+          $('#wrapper').slideToggle('slow');
+        }
+
+    }
+
 })();
 
 /**
