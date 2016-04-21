@@ -1,3 +1,25 @@
+<?php
+
+namespace geoOTELo\views;
+class HomeView
+{
+
+    const HOME = 1;
+
+    public function render($numAffichage)
+    {
+        $html = "";
+        switch ($numAffichage) {
+            case HomeView::HOME :
+                $html = $this->accueil();
+                break;
+        }
+        echo $html;
+    }
+
+    public function accueil()
+    {
+        $HTML = <<<END
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -37,3 +59,7 @@
 
 
 </html>
+END;
+        return $HTML;
+    }
+}
