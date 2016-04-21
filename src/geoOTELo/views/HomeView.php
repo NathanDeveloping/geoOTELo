@@ -30,6 +30,7 @@ class HomeView
     <link rel="stylesheet" href="styles/bootstrap.min.css">
     <link rel="stylesheet" href="styles/bootstrap-theme.min.css">
     <link rel="stylesheet" href="styles/leaflet.css">
+    <link rel="stylesheet" href="styles/leaflet.label.css">
 </head>
 
 <body>
@@ -55,6 +56,7 @@ class HomeView
 <script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
 <script type="text/javascript" src="js/bootstrap.min.js"></script>
 <script type="text/javascript" src="js/leaflet.js"></script>
+<script type="text/javascript" src="js/leaflet.label.js"></script>
 <script type="text/javascript" src="js/index.js"></script>
 
 

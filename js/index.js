@@ -43,23 +43,39 @@ APP.modules.map = (function() {
             }).addTo(map);
         },
 
+        /**
+         * methode d'affichage
+         * @param data
+         */
         affichageStations : function(data) {
+            var stationIcon = L.icon({
+                iconUrl: 'js/images/station-icon.png',
+                iconRetinaUrl: 'js/images/station-icon-2x.png',
+                iconSize: [25, 41], // size of the icon
+                iconAnchor: [12, 40]
+            });
             data.forEach(function(k, v) {
                 long = APP.modules.utility.parseDMS(k.LONGITUDE.replace(/\s+/g, ''));
                 lat = APP.modules.utility.parseDMS(k.LATITUDE.replace(/\s+/g, ''));
-                L.marker([lat, long]).addTo(map);
+                L.marker([lat, long], {icon: stationIcon}).bindLabel(k.ABBREVIATION).addTo(map);
             });
         }
 
     }
 })();
 
+/**
+ * Base du REST
+ * envoi les requêtes permettant
+ * de récuperer les données du serveur
+ * 
+ * @type {{getStations}}
+ */
 APP.modules.service = (function() {
 
     return {
 
         getStations : function(callback) {
-            console.log("ok");
             $.ajax( {
                 url : "index.php/api/stations",
                 type : 'POST',
@@ -72,6 +88,12 @@ APP.modules.service = (function() {
 
 })();
 
+/**
+ * Module présentant les fonctions utilitaires
+ * de l'application
+ * 
+ * @type {{parseDMS, convertDMSToDD}}
+ */
 APP.modules.utility = (function() {
 
     return {
