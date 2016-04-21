@@ -399,8 +399,8 @@ class ExcelConverter {
                                 $activeField = "STATION";
                                 $longitude = $sheet->getCellByColumnAndRow(3, $ligne)->getValue();
                                 $obj = array(
-                                    "NAME" => trim($sheet->getCellByColumnAndRow(1, $ligne)->getValue()),
-                                    "ABBREVIATION" => trim($sheet->getCellByColumnAndRow(2, $ligne)->getCalculatedValue()),
+                                    "NAME" => strtoupper(trim($sheet->getCellByColumnAndRow(1, $ligne)->getValue())),
+                                    "ABBREVIATION" => strtoupper(trim($sheet->getCellByColumnAndRow(2, $ligne)->getCalculatedValue())),
                                     "LONGITUDE" => trim($sheet->getCellByColumnAndRow(3, $ligne)->getFormattedValue()),
                                     "LATITUDE" => trim($sheet->getCellByColumnAndRow(4, $ligne)->getValue()),
                                     "ELEVATION" => trim($sheet->getCellByColumnAndRow(5, $ligne)->getFormattedValue()),
