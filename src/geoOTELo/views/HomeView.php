@@ -27,8 +27,10 @@ class HomeView
     <meta charset="utf-8">
     <title>GeoOTELo</title>
     <link href="styles/style.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="styles/jquery-ui.min.css">
     <link rel="stylesheet" href="styles/bootstrap.min.css">
     <link rel="stylesheet" href="styles/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="styles/bootstrap-select.min.css">
     <link rel="stylesheet" href="styles/leaflet.css">
     <link rel="stylesheet" href="styles/leaflet.label.css">
 </head>
@@ -50,11 +52,17 @@ class HomeView
     </nav>
 </header>
 
-<nav id="wrapper" class="navbar navbar-default">
-                <ul class="nav nav-pills nav-stacked">
-                    <li role="presentation" class="active"><a href="#">Type de prélèvement</a></li>
-                </ul>     
-    </nav>
+<nav id="wrapper" class="navbar navbar-default">                    
+                    <ul class="nav nav-pills nav-stacked">
+                        <li role="presentation" class="active"><a href="#">Type de prélèvement</a></li>
+                        <li>
+                                <select class="selectpicker" id="typeCombobox">
+                                    <option value="all">all</option>
+                                </select>
+                        </li>
+                        <li><button class="btn navbar-btn btn-default" id="refreshButton"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></li>
+                    </ul>     
+</nav>
 
 
 <section id="map" class="col-md-6">
@@ -65,7 +73,9 @@ class HomeView
 </body>
 
 <script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/bootstrap-select.min.js"></script>
 <script type="text/javascript" src="js/leaflet.js"></script>
 <script type="text/javascript" src="js/leaflet.label.js"></script>
 <script type="text/javascript" src="js/index.js"></script>

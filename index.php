@@ -3,6 +3,7 @@ require "vendor/autoload.php";
 use slim\Slim;
 use geoOTELo\controllers\HomeController;
 use geoOTELo\controllers\StationController;
+use geoOTELo\controllers\TypeController;
 
 $app = new \Slim\Slim();
 $config = parse_ini_file("src/config/config.ini");
@@ -19,4 +20,12 @@ $app->post('/api/stations(/:type)', function($type = null) use ($db) {
     $c->getStations($type);
 });
 
+$app->post('/api/types', function() use ($db) {
+    $c = new TypeController($db);
+    $c->getTypes();
+});
+
 $app->run();
+
+//$c = new TypeController($db);
+//$c->getTypes();

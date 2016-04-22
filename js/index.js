@@ -9,8 +9,10 @@ var APP = (function() {
     return {
         modules: {},
         init: function () {
-            APP.modules.service.getStations(APP.modules.map.affichageStations);
+            APP.modules.service.getStations(APP.modules.map.affichageStations, "all");
+            APP.modules.service.getTypes(APP.modules.affichage.initTypeCombobox);
             $('#filterButton').click(APP.modules.affichage.showFilterMenu);
+            $('#refreshButton').click(APP.modules.map.refresh);
         }
     }
 })();
@@ -25,6 +27,7 @@ var APP = (function() {
 APP.modules.map = (function() {
 
     var map, markers;
+    var typeCombobox = $('#typeCombobox');
 
     return {
 
@@ -56,6 +59,7 @@ APP.modules.map = (function() {
                 iconSize: [25, 41], // size of the icon
                 iconAnchor: [12, 40]
             });
+            console.log(data.length);
             data.forEach(function(k, v) {
                 long = APP.modules.utility.parseDMS(k.LONGITUDE.replace(/\s+/g, ''));
                 lat = APP.modules.utility.parseDMS(k.LATITUDE.replace(/\s+/g, ''));
@@ -70,6 +74,13 @@ APP.modules.map = (function() {
          */
         clearMarkers : function() {
           markers.clearLayers();
+        },
+
+        refresh : function() {
+            console.log("click");
+            type = typeCombobox.val();
+            APP.modules.map.clearMarkers();
+            APP.modules.service.getStations(APP.modules.map.affichageStations, type);
         }
 
     }
@@ -77,10 +88,22 @@ APP.modules.map = (function() {
 
 APP.modules.affichage =(function() {
     
+    var typeCombobox = $('#typeCombobox');
+    
     return {
 
         showFilterMenu : function() {
-          $('#wrapper').slideToggle('slow');
+            $("#wrapper").toggle("slide", {direction : 'left'});
+        },
+        
+        initTypeCombobox : function(data) {
+            data.forEach(function(k, v) {
+                console.log(k);
+                typeCombobox.append($('<option>', {
+                    value: k,
+                    text: k
+                }));
+            });
         }
 
     }
@@ -98,13 +121,28 @@ APP.modules.service = (function() {
 
     return {
 
-        getStations : function(callback) {
+        getStations : function(callback, type) {
+            addUrl = "/";
+            if(type == "all") {
+                addUrl = "";
+            } else {
+                addUrl = "/" + type;
+            }
             $.ajax( {
-                url : "index.php/api/stations",
+                url : "index.php/api/stations" + addUrl,
                 type : 'POST',
                 dataType: 'json',
-                success: callback,
+                success: callback
             });
+        },
+        
+        getTypes : function(callback) {
+            $.ajax( {
+                url : "index.php/api/types",
+                type : 'POST',
+                dataType: 'json',
+                success: callback
+            });  
         }
 
     }

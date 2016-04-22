@@ -24,10 +24,19 @@ body {
     z-index:10000;
     position:absolute;
     width:250px;
-    height:100%;
+    height:93%;
     margin:5px;
+    display : none;
 }
 
 #wrapper ul {
     width:100%;
+}
+
+#wrapper li {
+    height: 40px;
+}
+
+#wrapper button {
+    margin:0px;
 }
