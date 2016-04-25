@@ -29,3 +29,7 @@ $app->run();
 
 //$c = new TypeController($db);
 //$c->getTypes();
+
+//$c = new StationController($db);
+//echo count($c->getStations("water"));
+//echo count($c->getStations("spm"));

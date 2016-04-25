@@ -26,6 +26,12 @@ var APP = (function() {
  */
 APP.modules.map = (function() {
 
+    /**
+     * attributs
+     *  @var map : carte (objet Leaflet)
+     *  @var markers : ensemble des marqueurs de la carte
+     *  @var typeCombobox : selection du type de prélevement dans l'onglet de filtrage
+     */
     var map, markers;
     var typeCombobox = $('#typeCombobox');
 
@@ -42,7 +48,7 @@ APP.modules.map = (function() {
                 center: [49.230141, 6.008881],
                 zoom : 14
             });
-            markers = L.layerGroup();
+            markers = L.layerGroup().addTo(map);
             L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
@@ -59,11 +65,10 @@ APP.modules.map = (function() {
                 iconSize: [25, 41], // size of the icon
                 iconAnchor: [12, 40]
             });
-            console.log(data.length);
             data.forEach(function(k, v) {
-                long = APP.modules.utility.parseDMS(k.LONGITUDE.replace(/\s+/g, ''));
-                lat = APP.modules.utility.parseDMS(k.LATITUDE.replace(/\s+/g, ''));
-                markers.addLayer(L.marker([lat, long], {icon: stationIcon}).bindLabel(k.ABBREVIATION).addTo(map));
+                long = APP.modules.utility.convertDMSToDD(k.LONGITUDE.replace(/\s+/g, ''));
+                lat = APP.modules.utility.convertDMSToDD(k.LATITUDE.replace(/\s+/g, ''));
+                markers.addLayer(L.marker([lat, long], {icon: stationIcon}).bindLabel(k.ABBREVIATION));
             });
         },
 
@@ -76,8 +81,11 @@ APP.modules.map = (function() {
           markers.clearLayers();
         },
 
+        /**
+         * methode permettant d'actualiser la carte
+         * en fonction des options de filtrage
+         */
         refresh : function() {
-            console.log("click");
             type = typeCombobox.val();
             APP.modules.map.clearMarkers();
             APP.modules.service.getStations(APP.modules.map.affichageStations, type);
@@ -87,18 +95,29 @@ APP.modules.map = (function() {
 })();
 
 APP.modules.affichage =(function() {
-    
+
+    /**
+     * @var typeCombobox : selection du type de prélevement dans l'onglet de filtrage
+     */
     var typeCombobox = $('#typeCombobox');
     
     return {
 
+        /**
+         * Methode de slide du menu de filtrage
+         */
         showFilterMenu : function() {
             $("#wrapper").toggle("slide", {direction : 'left'});
         },
-        
+
+        /**
+         * Methode de recherche et d'affichage des differents
+         * type de prelevements possible de selectionner
+         * dans l'onglet de filtrage
+         * @param data
+         */
         initTypeCombobox : function(data) {
             data.forEach(function(k, v) {
-                console.log(k);
                 typeCombobox.append($('<option>', {
                     value: k,
                     text: k
@@ -121,6 +140,15 @@ APP.modules.service = (function() {
 
     return {
 
+        /**
+         * methode AJAX permettant de recuperer une station
+         * en particulier ou toutes les stations
+         *
+         * @param callback
+         *          fonction de traitement des donnees
+         * @param type
+         *          type de prelevement (filtre)
+         */
         getStations : function(callback, type) {
             addUrl = "/";
             if(type == "all") {
@@ -135,7 +163,14 @@ APP.modules.service = (function() {
                 success: callback
             });
         },
-        
+
+        /**
+         * methode AJAX permettant de recuperer les types
+         * de prélevement à filtrer
+         *
+         * @param callback
+         *          fonction de traitement des donnees
+         */
         getTypes : function(callback) {
             $.ajax( {
                 url : "index.php/api/types",
@@ -159,15 +194,11 @@ APP.modules.utility = (function() {
 
     return {
 
-        parseDMS : function(input) {
+        convertDMSToDD : function(input) {
             var parts = input.split(/[^\d\w\.]+/);
-            return APP.modules.utility.convertDMSToDD(parts[0], parts[1], parts[2], parts[3]);
-        },
+            var dd = Number(parts[0]) + Number(parts[1])/60 + Number(parts[2])/(60*60);
 
-        convertDMSToDD : function(degrees, minutes, seconds, direction) {
-            var dd = Number(degrees) + Number(minutes)/60 + Number(seconds)/(60*60);
-
-            if (direction == "S" || direction == "W") {
+            if (parts[3] == "S" || parts[3] == "W") {
                 dd = dd * -1;
             } // Don't do anything for N or E
             return dd;

@@ -1,11 +1,24 @@
 <?php
 
 namespace geoOTELo\views;
+
+/**
+ * Class HomeView
+ *
+ * Affichage de la page d'accueil
+ *
+ * @package geoOTELo\views
+ */
 class HomeView
 {
 
     const HOME = 1;
 
+    /**
+     * methode de rendu
+     * @param $numAffichage
+     *          type d'affichage
+     */
     public function render($numAffichage)
     {
         $html = "";
@@ -17,6 +30,11 @@ class HomeView
         echo $html;
     }
 
+    /**
+     * affichage principal de l'accueil
+     * @return string
+     *          code HTML à afficher
+     */
     public function accueil()
     {
         $HTML = <<<END
