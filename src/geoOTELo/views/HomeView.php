@@ -74,11 +74,11 @@ class HomeView
                     <ul class="nav nav-pills nav-stacked">
                         <li role="presentation" class="active"><a href="#">Type de prélèvement</a></li>
                         <li>
-                                <select class="selectpicker" id="typeCombobox">
+                                <select class="selectpicker" id="typeCombobox" data-width="100%">
                                     <option value="all">all</option>
                                 </select>
                         </li>
-                        <li><button class="btn navbar-btn btn-default" id="refreshButton"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></li>
+                        <li><button class="btn navbar-btn btn-default btn-block" id="refreshButton"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></li>
                     </ul>     
 </nav>
 
