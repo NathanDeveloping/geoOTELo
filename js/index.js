@@ -59,9 +59,38 @@ APP.modules.map = (function() {
          * @param data
          */
         affichageStations : function(data) {
+            var icon = 'station-icon.png';
+            var icon2x = 'station-icon-2x.png';
+            var type = APP.modules.utility.baseName(this.url);
+            var iconTestUrl = type + "-icon.png";
+            var icon2xTestUrl = type + "-icon-2x.png";
+            if(type !== "stations") {
+                $.ajax({
+                    url:'js/images/' + iconTestUrl,
+                    type:'HEAD',
+                    async: false,
+                    success: function() {
+                        changeIcon();
+                    }
+                });
+                $.ajax({
+                    url:'js/images/' + icon2xTestUrl,
+                    type:'HEAD',
+                    async: false,
+                    success: function() {
+                        changeIcon2x();
+                    }
+                });
+                function changeIcon() {
+                    icon = iconTestUrl;
+                }
+                function changeIcon2x() {
+                    icon2x = icon2xTestUrl;
+                }
+            }
             var stationIcon = L.icon({
-                iconUrl: 'js/images/station-icon.png',
-                iconRetinaUrl: 'js/images/station-icon-2x.png',
+                iconUrl: 'js/images/' + icon,
+                iconRetinaUrl: 'js/images/' + icon2x,
                 iconSize: [25, 41], // size of the icon
                 iconAnchor: [12, 40]
             });
@@ -78,7 +107,7 @@ APP.modules.map = (function() {
          *
          */
         clearMarkers : function() {
-          markers.clearLayers();
+            markers.clearLayers();
         },
 
         /**
@@ -100,7 +129,7 @@ APP.modules.affichage =(function() {
      * @var typeCombobox : selection du type de prélevement dans l'onglet de filtrage
      */
     var typeCombobox = $('#typeCombobox');
-    
+
     return {
 
         /**
@@ -133,10 +162,11 @@ APP.modules.affichage =(function() {
  * Base du REST
  * envoi les requêtes permettant
  * de récuperer les données du serveur
- * 
+ *
  * @type {{getStations}}
  */
 APP.modules.service = (function() {
+
 
     return {
 
@@ -177,9 +207,8 @@ APP.modules.service = (function() {
                 type : 'POST',
                 dataType: 'json',
                 success: callback
-            });  
+            });
         }
-
     }
 
 })();
@@ -187,13 +216,22 @@ APP.modules.service = (function() {
 /**
  * Module présentant les fonctions utilitaires
  * de l'application
- * 
+ *
  * @type {{parseDMS, convertDMSToDD}}
  */
 APP.modules.utility = (function() {
 
     return {
 
+        /**
+         * methode convertis les coordonnees
+         * geographiques du format DMS vers format decimal
+         *
+         * @param input
+         *          lat/lng sous format DMS
+         * @returns {number}
+         *          lat/lng sous format decimal
+         */
         convertDMSToDD : function(input) {
             var parts = input.split(/[^\d\w\.]+/);
             var dd = Number(parts[0]) + Number(parts[1])/60 + Number(parts[2])/(60*60);
@@ -202,8 +240,20 @@ APP.modules.utility = (function() {
                 dd = dd * -1;
             } // Don't do anything for N or E
             return dd;
-        }
+        },
 
+        /**
+         * methode retourne le nom de fichier
+         * simple du chemin entre en parametre
+         *
+         * @param path
+         *          chemin d'ou tirer le basename
+         * @returns {T}
+         *          basename du chemin
+         */
+        baseName : function(path) {
+            return path.split(/[\\/]/).pop();
+        }
     }
 
 })();
