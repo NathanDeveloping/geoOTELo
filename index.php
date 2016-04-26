@@ -4,6 +4,7 @@ use slim\Slim;
 use geoOTELo\controllers\HomeController;
 use geoOTELo\controllers\StationController;
 use geoOTELo\controllers\TypeController;
+use geoOTELo\controllers\AnalysisController;
 
 $app = new \Slim\Slim();
 $config = parse_ini_file("src/config/config.ini");
@@ -25,11 +26,16 @@ $app->post('/api/types', function() use ($db) {
     $c->getTypes();
 });
 
+$app->post('/api/analysis/:station(/:type(/:group))', function($station, $type = null, $group = null) use ($db) {
+    $c = new AnalysisController($db);
+    $c->getAnalysisNames($station, $type, $group);
+});
+
 $app->run();
 
 //$c = new TypeController($db);
 //$c->getTypes();
 
-//$c = new StationController($db);
-//echo count($c->getStations("water"));
-//echo count($c->getStations("spm"));
+//$c = new AnalysisController($db);
+//var_dump($c->getAnalysisNames("JOHA", null, "EA"));
+//var_dump($c->getAnalysisNames("JOHA"));

@@ -82,6 +82,39 @@ class HomeView
                     </ul>     
 </nav>
 
+<nav id="information" class="panel panel-default">                    
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <p id="titre"></p>
+                            <div class="glyphicon glyphicon-chevron-down pull-right"></div>
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <h4 id="nomStation"></h4>
+                        <p id="description"></p>
+                    </div>
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            Filtres
+                            <div class="glyphicon glyphicon-chevron-down pull-right"></div>
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                    </div>
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            Analyses
+                            <div class="glyphicon glyphicon-chevron-down pull-right"></div>
+                        </h3>
+                    </div>
+                    <div class="panel-body" id="analyses">
+                        <ul id="list-analysis" class="list-group">
+                        </ul>
+                        <button class="btn navbar-btn btn-default btn-block" id="refreshButton2"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
+                        <button class="btn navbar-btn btn-success btn-block" id="openButton">Ouvrir</button>
+                    </div>
+</nav>
+
 
 <section id="map" class="col-md-6">
 </section>

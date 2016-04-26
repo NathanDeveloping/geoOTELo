@@ -1,3 +1,9 @@
+var DataMarker = L.Marker.extend({
+    data: {
+        abbreviation: "custom"
+    }
+});
+
 /**
  * namespace APP
  * détient les modules de l'application
@@ -13,6 +19,8 @@ var APP = (function() {
             APP.modules.service.getTypes(APP.modules.affichage.initTypeCombobox);
             $('#filterButton').click(APP.modules.affichage.showFilterMenu);
             $('#refreshButton').click(APP.modules.map.refresh);
+            $('.panel-heading').click(APP.modules.affichage.toggleElement);
+            $('#refreshButton2').click(APP.modules.affichage.showAnalysis);
         }
     }
 })();
@@ -48,7 +56,11 @@ APP.modules.map = (function() {
                 center: [49.230141, 6.008881],
                 zoom : 14
             });
-            markers = L.layerGroup().addTo(map);
+            markers = {
+                markersData : [],
+                featureGroup : L.featureGroup().addTo(map),
+            };
+            //markers.featureGroup.on('click', APP.modules.affichage.showStationInformations);
             L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
@@ -94,10 +106,16 @@ APP.modules.map = (function() {
                 iconSize: [25, 41], // size of the icon
                 iconAnchor: [12, 40]
             });
+            var i = 0;
             data.forEach(function(k, v) {
                 long = APP.modules.utility.convertDMSToDD(k.LONGITUDE.replace(/\s+/g, ''));
                 lat = APP.modules.utility.convertDMSToDD(k.LATITUDE.replace(/\s+/g, ''));
-                markers.addLayer(L.marker([lat, long], {icon: stationIcon}).bindLabel(k.ABBREVIATION));
+                var newMarker = new DataMarker([lat, long], {icon: stationIcon}).bindLabel(k.ABBREVIATION);
+                newMarker.on("click", APP.modules.affichage.showStationInformations);
+                newMarker.options.abbreviation = k.ABBREVIATION;
+                markers.featureGroup.addLayer(newMarker);
+                sessionStorage.setItem(k.ABBREVIATION, JSON.stringify(k));
+                i++;
             });
         },
 
@@ -107,7 +125,7 @@ APP.modules.map = (function() {
          *
          */
         clearMarkers : function() {
-            markers.clearLayers();
+            markers.featureGroup.clearLayers();
         },
 
         /**
@@ -118,7 +136,7 @@ APP.modules.map = (function() {
             type = typeCombobox.val();
             APP.modules.map.clearMarkers();
             APP.modules.service.getStations(APP.modules.map.affichageStations, type);
-        }
+        },
 
     }
 })();
@@ -129,6 +147,8 @@ APP.modules.affichage =(function() {
      * @var typeCombobox : selection du type de prélevement dans l'onglet de filtrage
      */
     var typeCombobox = $('#typeCombobox');
+    var stationActuelle;
+    var listAnalysis = $('#list-analysis');
 
     return {
 
@@ -150,6 +170,63 @@ APP.modules.affichage =(function() {
                 typeCombobox.append($('<option>', {
                     value: k,
                     text: k
+                }));
+            });
+        },
+
+        /**
+         * methode d'ouverture du panel
+         * informatif de la station clickée
+         *
+         * @param e
+         */
+        showStationInformations : function(e) {
+            listAnalysis.empty();
+            var abb = e.target.options.abbreviation;
+            stationActuelle = abb;
+            var station = JSON.parse(sessionStorage.getItem(abb));
+            var informationDiv = $("#information");
+            var titre = $('#titre');
+            var nomStation = $('#nomStation');
+            var description = $('#description');
+            if(informationDiv.is(":hidden")) {
+                titre.text("Station : " + station.ABBREVIATION);
+                //description.text(station.DESCRIPTION);
+                description.text("Nunc non rutrum odio. Sed commodo massa sed pulvinar tristique. In luctus libero at arcu tincidunt, ut posuere nisi gravida. Nullam blandit vitae justo laoreet gravida. Fusce nec urna sit amet tellus maximus suscipit. Nam eget laoreet ante. Quisque sapien purus, pellentesque id magna eu, consectetur suscipit erat.");
+                nomStation.text(station.NAME);
+                informationDiv.toggle("slide", {direction : 'right'});
+            } else if(titre.text() !== ("Station : " + station.ABBREVIATION)){
+                informationDiv.toggle("slide", {direction : 'right'});
+                titre.text("Station : " + station.ABBREVIATION);
+                //description.text(station.DESCRIPTION);
+                description.text("Nunc non rutrum odio. Sed commodo massa sed pulvinar tristique. In luctus libero at arcu tincidunt, ut posuere nisi gravida. Nullam blandit vitae justo laoreet gravida. Fusce nec urna sit amet tellus maximus suscipit. Nam eget laoreet ante. Quisque sapien purus, pellentesque id magna eu, consectetur suscipit erat.");
+                nomStation.text(station.NAME);
+                informationDiv.toggle("slide", {direction : 'right'});
+            }
+        },
+
+        toggleElement : function(e) {
+            var targetDom = $(e.delegateTarget);
+            targetDom.find("div.glyphicon").toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
+            var elementToggled = targetDom.next('.panel-body');
+            elementToggled.slideToggle("slow");
+        },
+
+        showAnalysis : function() {
+            console.log("lol");
+            var station = stationActuelle;
+            var type = null;
+            var groupeMesure = null;
+            APP.modules.service.getAnalysisNames(APP.modules.affichage.showAnalysisField, station, type, groupeMesure);
+        },
+
+        showAnalysisField : function(data) {
+            data.forEach(function(k, v) {
+                console.log("op");
+                listAnalysis.append($('<li>', {
+                    value: k._id,
+                    text: k._id,
+                    class: 'list-group-item'
                 }));
             });
         }
@@ -204,6 +281,29 @@ APP.modules.service = (function() {
         getTypes : function(callback) {
             $.ajax( {
                 url : "index.php/api/types",
+                type : 'POST',
+                dataType: 'json',
+                success: callback
+            });
+        },
+
+        /**
+         * methode AJAX permettant de récuperer les noms
+         * des analyses
+         * @param callback
+         * @param station
+         *          station liée
+         * @param type
+         *          filtre type de prélevement
+         * @param groupe
+         *          filtre groupe de mesure
+         */
+        getAnalysisNames : function(callback, station, type, groupe) {
+            var url = "index.php/api/analysis/" + station;
+            if(type != null) url += "/" + type;
+            if(groupe != null) url += "/" + groupe;
+            $.ajax( {
+                url : url,
                 type : 'POST',
                 dataType: 'json',
                 success: callback

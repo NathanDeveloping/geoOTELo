@@ -30,6 +30,36 @@ body {
     padding:10px;
 }
 
+#information {
+    z-index:10000;
+    position:absolute;
+    width:400px;
+    height:93%;
+    margin:5px;
+    right:0px;
+    display : none;
+    padding:10px;
+    text-align:justify;
+}
+
+#information p {
+    margin:0;
+    display:inline-block;
+}
+
+#information li {
+    margin-bottom:10px;
+}
+
+#nomStation {
+    font-weight: bold;
+    text-align :center;
+}
+
+.panel-heading {
+    cursor:pointer;
+}
+
 #wrapper ul {
     width:100%;
 }
@@ -44,4 +74,17 @@ body {
 
 #typeCombobox {
     width:100%;
+}
+
+.list-group  {
+    overflow-y:auto;
+    height:400px;
+}
+
+#analyses li {
+    margin:0;
+}
+
+.glyphicon-chevron-down {
+    z-index:10001;
 }
