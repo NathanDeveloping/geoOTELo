@@ -147,8 +147,11 @@ APP.modules.affichage =(function() {
      * @var typeCombobox : selection du type de prélevement dans l'onglet de filtrage
      */
     var typeCombobox = $('#typeCombobox');
-    var stationActuelle;
+    var stationActuelle = null;
+    var stationPrecedente = null;
     var listAnalysis = $('#list-analysis');
+    var typeFilterAnalysisCombobox = $('#typeFilterAnalysisCombobox');
+    var typeGroupMeasuresCombobox = $('#typeGroupMeasuresCombobox');
 
     return {
 
@@ -174,6 +177,10 @@ APP.modules.affichage =(function() {
             });
         },
 
+        initFilterAnalysisCombobox : function() {
+            
+        },
+
         /**
          * methode d'ouverture du panel
          * informatif de la station clickée
@@ -181,27 +188,34 @@ APP.modules.affichage =(function() {
          * @param e
          */
         showStationInformations : function(e) {
-            listAnalysis.empty();
+
             var abb = e.target.options.abbreviation;
-            stationActuelle = abb;
-            var station = JSON.parse(sessionStorage.getItem(abb));
-            var informationDiv = $("#information");
-            var titre = $('#titre');
-            var nomStation = $('#nomStation');
-            var description = $('#description');
-            if(informationDiv.is(":hidden")) {
-                titre.text("Station : " + station.ABBREVIATION);
-                //description.text(station.DESCRIPTION);
-                description.text("Nunc non rutrum odio. Sed commodo massa sed pulvinar tristique. In luctus libero at arcu tincidunt, ut posuere nisi gravida. Nullam blandit vitae justo laoreet gravida. Fusce nec urna sit amet tellus maximus suscipit. Nam eget laoreet ante. Quisque sapien purus, pellentesque id magna eu, consectetur suscipit erat.");
-                nomStation.text(station.NAME);
-                informationDiv.toggle("slide", {direction : 'right'});
-            } else if(titre.text() !== ("Station : " + station.ABBREVIATION)){
-                informationDiv.toggle("slide", {direction : 'right'});
-                titre.text("Station : " + station.ABBREVIATION);
-                //description.text(station.DESCRIPTION);
-                description.text("Nunc non rutrum odio. Sed commodo massa sed pulvinar tristique. In luctus libero at arcu tincidunt, ut posuere nisi gravida. Nullam blandit vitae justo laoreet gravida. Fusce nec urna sit amet tellus maximus suscipit. Nam eget laoreet ante. Quisque sapien purus, pellentesque id magna eu, consectetur suscipit erat.");
-                nomStation.text(station.NAME);
-                informationDiv.toggle("slide", {direction : 'right'});
+            if(abb != stationPrecedente) {
+                listAnalysis.empty();
+                stationActuelle = abb;
+                var station = JSON.parse(sessionStorage.getItem(abb));
+                var informationDiv = $("#information");
+                var titre = $('#titre');
+                var nomStation = $('#nomStation');
+                var description = $('#description');
+                var filtreDiv = $("#filtres");
+                var analysesDiv = $("#analyses");
+                if(informationDiv.is(":hidden")) {
+                    titre.text("Station : " + station.ABBREVIATION);
+                    //description.text(station.DESCRIPTION);
+                    description.text("Nunc non rutrum odio. Sed commodo massa sed pulvinar tristique. In luctus libero at arcu tincidunt, ut posuere nisi gravida. Nullam blandit vitae justo laoreet gravida. Fusce nec urna sit amet tellus maximus suscipit. Nam eget laoreet ante. Quisque sapien purus, pellentesque id magna eu, consectetur suscipit erat.");
+                    nomStation.text(station.NAME);
+                    informationDiv.toggle("slide", {direction : 'right'});
+                } else if(titre.text() !== ("Station : " + station.ABBREVIATION)) {
+                    informationDiv.toggle("slide", {direction : 'right'});
+                    titre.text("Station : " + station.ABBREVIATION);
+                    //description.text(station.DESCRIPTION);
+                    description.text("Nunc non rutrum odio. Sed commodo massa sed pulvinar tristique. In luctus libero at arcu tincidunt, ut posuere nisi gravida. Nullam blandit vitae justo laoreet gravida. Fusce nec urna sit amet tellus maximus suscipit. Nam eget laoreet ante. Quisque sapien purus, pellentesque id magna eu, consectetur suscipit erat.");
+                    nomStation.text(station.NAME);
+                    informationDiv.toggle("slide", {direction : 'right'});
+                }
+                if(filtreDiv.next('.panel-body').is(":visible")) filtreDiv.trigger("click");
+                if(analysesDiv.next('.panel-body').is(":visible")) analysesDiv.trigger("click");
             }
         },
 
@@ -209,20 +223,24 @@ APP.modules.affichage =(function() {
             var targetDom = $(e.delegateTarget);
             targetDom.find("div.glyphicon").toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
             var elementToggled = targetDom.next('.panel-body');
+            if(targetDom.is("#analyses") && elementToggled.is(":hidden")) {
+                $('#refreshButton2').trigger("click");
+            }
             elementToggled.slideToggle("slow");
         },
 
         showAnalysis : function() {
-            console.log("lol");
             var station = stationActuelle;
             var type = null;
             var groupeMesure = null;
-            APP.modules.service.getAnalysisNames(APP.modules.affichage.showAnalysisField, station, type, groupeMesure);
+            if(stationActuelle != stationPrecedente) {
+                APP.modules.service.getAnalysisNames(APP.modules.affichage.showAnalysisField, station, type, groupeMesure);
+                stationPrecedente = stationActuelle;
+            }
         },
 
         showAnalysisField : function(data) {
             data.forEach(function(k, v) {
-                console.log("op");
                 listAnalysis.append($('<li>', {
                     value: k._id,
                     text: k._id,
@@ -299,6 +317,7 @@ APP.modules.service = (function() {
          *          filtre groupe de mesure
          */
         getAnalysisNames : function(callback, station, type, groupe) {
+            console.log("ok");
             var url = "index.php/api/analysis/" + station;
             if(type != null) url += "/" + type;
             if(groupe != null) url += "/" + groupe;

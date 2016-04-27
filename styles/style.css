@@ -53,6 +53,7 @@ body {
 
 #nomStation {
     font-weight: bold;
+
     text-align :center;
 }
 
@@ -78,7 +79,16 @@ body {
 
 .list-group  {
     overflow-y:auto;
-    height:400px;
+    height:300px;
+}
+
+.list-group-item  {
+    padding:5px;
+}
+
+.bootstrap-select {
+    margin-top:5px;
+    margin-bottom:5px;
 }
 
 #analyses li {

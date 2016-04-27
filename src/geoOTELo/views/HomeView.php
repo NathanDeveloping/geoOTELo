@@ -82,7 +82,7 @@ class HomeView
                     </ul>     
 </nav>
 
-<nav id="information" class="panel panel-default">                    
+<nav id="information" class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">
                             <p id="titre"></p>
@@ -93,15 +93,21 @@ class HomeView
                         <h4 id="nomStation"></h4>
                         <p id="description"></p>
                     </div>
-                    <div class="panel-heading">
+                    <div class="panel-heading" id="filtres">
                         <h3 class="panel-title">
                             Filtres
                             <div class="glyphicon glyphicon-chevron-down pull-right"></div>
                         </h3>
                     </div>
                     <div class="panel-body">
+                        <select class="selectpicker" id="typeFilterAnalysisCombobox" title="Type de prélèvement..." data-width="100%">
+                              <option value="all">all</option>
+                        </select>
+                        <select class="selectpicker" id="typeGroupMeasuresCombobox" title="Groupe de mesures..." data-width="100%">
+                              <option value="all">all</option>
+                        </select>
                     </div>
-                    <div class="panel-heading">
+                    <div class="panel-heading" id="analyses">
                         <h3 class="panel-title">
                             Analyses
                             <div class="glyphicon glyphicon-chevron-down pull-right"></div>
