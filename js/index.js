@@ -23,6 +23,7 @@ var APP = (function() {
             $('.panel-heading').click(APP.modules.affichage.toggleElement);
             $('#refreshButton2').click(APP.modules.affichage.showAnalysis);
             $(document).on('click', '.list-group-item', APP.modules.affichage.selectAnalysis);
+            $('#download').click(APP.modules.utility.downloadXLSX);
         }
     }
 })();
@@ -442,6 +443,27 @@ APP.modules.utility = (function() {
          */
         baseName : function(path) {
             return path.split(/[\\/]/).pop();
+        },
+
+        /**
+         * méthode permettant de telecharger le fichier
+         * xlsx correspondant à l'analyse selectionnee
+         */
+        downloadXLSX : function() {
+            var champ = $('#list-analysis').find('.active');
+            if(champ !== null) {
+                var fileName = champ.text();
+                if(fileName != "") {
+                    console.log(fileName);
+                    var link = document.createElement("a");
+                    var uri = 'src/geoOTELo/scripts/download.php?file_name=' + fileName;
+                    link.href = uri;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    delete link;
+                }
+            }
         }
     }
 

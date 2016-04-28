@@ -33,6 +33,11 @@ $app->post('/api/analysis/:station(/:type(/:group))', function($station, $type =
     $c->getAnalysisNames($station, $type, $group);
 });
 
+$app->post('/api/types', function() use ($db) {
+    $c = new TypeController($db);
+    $c->getTypes();
+});
+
 $app->run();
 
 //$c = new TypeController($db);
