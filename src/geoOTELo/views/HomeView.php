@@ -83,6 +83,10 @@ class HomeView
 </nav>
 
 <nav id="information" class="panel panel-default">
+                    
+                    <div id="toggleButton">
+                       <img id="toggleButtonImg" src="js/images/close.png"></img>
+                    </div>
                     <div class="panel-heading" id="stationInfos">
                         <h3 class="panel-title">
                             <p id="titre"></p>
@@ -96,10 +100,10 @@ class HomeView
                     <div class="panel-heading" id="filtres">
                         <h3 class="panel-title">
                             Filtres
-                            <div class="glyphicon glyphicon-chevron-down pull-right"></div>
+                            <div class="glyphicon glyphicon-chevron-up pull-right"></div>
                         </h3>
                     </div>
-                    <div class="panel-body">
+                    <div class="panel-body" id="filtresBody">
                         <select class="selectpicker" id="typeFilterAnalysisCombobox" title="Type de prélèvement..." data-width="100%">
                               <option value="all">all</option>
                         </select>
@@ -110,18 +114,22 @@ class HomeView
                     <div class="panel-heading" id="analyses">
                         <h3 class="panel-title">
                             Analyses
-                            <div class="glyphicon glyphicon-chevron-down pull-right"></div>
+                            <div class="glyphicon glyphicon-chevron-up pull-right"></div>
                         </h3>
                     </div>
                     <div class="panel-body" id="analysesBody">
-                        <ul id="list-analysis" class="list-group">
-                        </ul>
-                        <button class="btn navbar-btn btn-default btn-block" id="refreshButton2"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
-                        <button class="btn navbar-btn btn-success btn-block" id="openButton">Ouvrir</button>
-                        <button class="btn navbar-btn btn-success btn-block" id="download">Télécharger en XLSX</button>
+                        <div id="response">
+                            <ul id="list-analysis" class="list-group">
+                            </ul>
+                            <img id="notfoundimg" src="js/images/not_found.png">
+                        </div>
+                        <div id="staticButton">
+                            <button class="btn navbar-btn btn-default btn-block" id="refreshButton2"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
+                            <button class="btn navbar-btn btn-success btn-block" id="openButton">Ouvrir</button>
+                            <button class="btn navbar-btn btn-success btn-block" id="download">Télécharger en XLSX</button>
+                        </div>
                     </div>
 </nav>
-
 
 <section id="map" class="col-md-6">
 </section>

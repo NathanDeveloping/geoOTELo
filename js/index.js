@@ -155,7 +155,6 @@ APP.modules.affichage =(function() {
     var listAnalysis = $('#list-analysis');
     var typeFilterAnalysisCombobox = $('#typeFilterAnalysisCombobox');
     var groupMeasuresCombobox = $('#groupMeasuresCombobox');
-    var activeLi = 0;
 
     return {
 
@@ -261,17 +260,19 @@ APP.modules.affichage =(function() {
             var targetDom = $(e.delegateTarget);
             targetDom.find("div.glyphicon").toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
             var elementToToggle= targetDom.next('.panel-body');
-            if(targetDom.is("#analyses") && elementToToggle.is(":hidden")) {
-                $('#refreshButton2').trigger("click");
-                var stationInfos = $('#stationInfosBody');
-                if(stationInfos.is(":visible")) {
-                    console.log("ok");
-                    $('#titre').trigger('click');
+            if(targetDom.is("#analyses") ) {
+                if(elementToToggle.is(":hidden")) {
+                    $('#refreshButton2').trigger("click");
+                    var stationInfos = $('#stationInfosBody');
+                    if (stationInfos.is(":visible")) {
+                        $('#titre').trigger('click');
+                    }
                 }
+                console.log("toggle");
+                $('#staticButton').slideToggle('slow');
             }
             var analysis = $("#analysesBody");
             if(targetDom.is('#stationInfos') && elementToToggle.is(":hidden") && analysis.is(":visible")) {
-                console.log("sisi");
                 $('#analyses').trigger('click');
             }
             elementToToggle.slideToggle("slow");
@@ -289,7 +290,6 @@ APP.modules.affichage =(function() {
             if(type === "all") type = null;
             if(groupeMesure === "all") groupeMesure = null;
             if(currentSetting != lastSetting) {
-                console.log(station + " / " + type + " / " + groupeMesure);
                 APP.modules.service.getAnalysisNames(APP.modules.affichage.showAnalysisField, station, type, groupeMesure);
                 lastSetting['station'] = station;
             }
@@ -301,13 +301,15 @@ APP.modules.affichage =(function() {
          *          données (analyses) reçu via AJAX
          */
         showAnalysisField : function(data) {
-            data.forEach(function(k, v) {
-                listAnalysis.append($('<li>', {
-                    value: k._id,
-                    text: k._id,
-                    class: 'list-group-item'
-                }));
-            });
+                data.forEach(function (k, v) {
+                    listAnalysis.append($('<li>', {
+                        value: k._id,
+                        text: k._id,
+                        class: 'list-group-item'
+                    }));
+                });
+                $('#notfoundimg').hide();
+                listAnalysis.show(500);
         },
 
         /**
@@ -387,16 +389,18 @@ APP.modules.service = (function() {
          *          filtre groupe de mesure
          */
         getAnalysisNames : function(callback, station, type, groupe) {
-            console.log("ok");
             var url = "index.php/api/analysis/" + station;
             if(type) url += "/" + type; else url += "/null";
             if(groupe) url += "/" + groupe; else url += "/null";
-            console.log("url : " + url);
             $.ajax( {
                 url : url,
                 type : 'POST',
                 dataType: 'json',
-                success: callback
+                success: callback,
+                error: function() {
+                    $('#list-analysis').hide();
+                    $('#notfoundimg').show();
+                }
             });
         }
     }
@@ -454,7 +458,6 @@ APP.modules.utility = (function() {
             if(champ !== null) {
                 var fileName = champ.text();
                 if(fileName != "") {
-                    console.log(fileName);
                     var link = document.createElement("a");
                     var uri = 'src/geoOTELo/scripts/download.php?file_name=' + fileName;
                     link.href = uri;

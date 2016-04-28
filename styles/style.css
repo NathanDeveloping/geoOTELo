@@ -9,6 +9,7 @@ header {
     left: 0;
     width: 99% !important;
     height: 92% !important;
+    z-index:10000;
 }
 
 #nav {
@@ -21,7 +22,7 @@ body {
 }
 
 #wrapper {
-    z-index:10000;
+    z-index:10001;
     position:absolute;
     width:250px;
     height:93%;
@@ -31,7 +32,7 @@ body {
 }
 
 #information {
-    z-index:10000;
+    z-index:10001;
     position:absolute;
     width:450px;
     height:92%;
@@ -92,8 +93,45 @@ body {
     margin: 0;
     margin-top:10px;
     bottom:0px;
+    display:none;
+}
+
+#filtersBody {
+    display:none;
 }
 
 .glyphicon-chevron-down {
-    z-index:10001;
+    z-index:10002;
+}
+
+#list-analysis {
+    display:none;
+}
+
+#staticButton {
+    width:90%;
+    position:absolute;
+    top:575px;
+    display:none;
+}
+
+#notfoundimg {
+    width:100%;
+}
+
+#toggleButton {
+    float:left;
+    margin-top:2px;
+    margin-left:-42px;
+    width:35px;
+    height:35px;
+    z-index: 10005;
+    cursor:pointer;
+}
+
+#toggleButtonImg {
+    margin-left:2px;
+    margin-top:2px;
+    width:80%;
+    height:80%;
 }
