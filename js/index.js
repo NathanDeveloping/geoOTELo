@@ -16,11 +16,13 @@ var APP = (function() {
         modules: {},
         init: function () {
             APP.modules.service.getStations(APP.modules.map.affichageStations, "all");
-            APP.modules.service.getTypes(APP.modules.affichage.initTypeCombobox);
+            APP.modules.service.getTypes(APP.modules.affichage.initTypeComboboxes);
+            APP.modules.affichage.initFilterGroupAnalysisCombobox();
             $('#filterButton').click(APP.modules.affichage.showFilterMenu);
             $('#refreshButton').click(APP.modules.map.refresh);
             $('.panel-heading').click(APP.modules.affichage.toggleElement);
             $('#refreshButton2').click(APP.modules.affichage.showAnalysis);
+            $(document).on('click', '.list-group-item', APP.modules.affichage.selectAnalysis);
         }
     }
 })();
@@ -147,11 +149,12 @@ APP.modules.affichage =(function() {
      * @var typeCombobox : selection du type de prélevement dans l'onglet de filtrage
      */
     var typeCombobox = $('#typeCombobox');
-    var stationActuelle = null;
-    var stationPrecedente = null;
+    var currentSetting = [];
+    var lastSetting = [];
     var listAnalysis = $('#list-analysis');
     var typeFilterAnalysisCombobox = $('#typeFilterAnalysisCombobox');
-    var typeGroupMeasuresCombobox = $('#typeGroupMeasuresCombobox');
+    var groupMeasuresCombobox = $('#groupMeasuresCombobox');
+    var activeLi = 0;
 
     return {
 
@@ -168,17 +171,34 @@ APP.modules.affichage =(function() {
          * dans l'onglet de filtrage
          * @param data
          */
-        initTypeCombobox : function(data) {
+        initTypeComboboxes : function(data) {
+
             data.forEach(function(k, v) {
+                typeFilterAnalysisCombobox.append($('<option>', {
+                    value: k,
+                    text: k
+                }));
                 typeCombobox.append($('<option>', {
                     value: k,
                     text: k
                 }));
             });
+
         },
 
-        initFilterAnalysisCombobox : function() {
-            
+        /**
+         * méthode d'initialisation de la combobox
+         * de choix du group de mesures dans le panel
+         * filtre des informations de station
+         */
+        initFilterGroupAnalysisCombobox : function() {
+            var groupAnalysis = ["PSD", "MIN", "EA", "PAC", "MIC", "XRF", "GP", "ISO", "DMT", "16S-MGE", "ECOLI-ENT", "PHAGE", "QMJ", "QTVAR", "CAMPY-VIRO", "MET-HAP"];
+            groupAnalysis.forEach(function(k, v) {
+                groupMeasuresCombobox.append($('<option>', {
+                    value: k,
+                    text: k
+                }));
+            });
         },
 
         /**
@@ -188,11 +208,18 @@ APP.modules.affichage =(function() {
          * @param e
          */
         showStationInformations : function(e) {
-
             var abb = e.target.options.abbreviation;
-            if(abb != stationPrecedente) {
+            if($.isEmptyObject(lastSetting)) {
+                showPanel();
+            } else {
+                if(abb != lastSetting["station"]) {
+                    showPanel();
+                }
+            }
+
+            function showPanel() {
                 listAnalysis.empty();
-                stationActuelle = abb;
+                currentSetting["station"] = abb;
                 var station = JSON.parse(sessionStorage.getItem(abb));
                 var informationDiv = $("#information");
                 var titre = $('#titre');
@@ -214,31 +241,64 @@ APP.modules.affichage =(function() {
                     nomStation.text(station.NAME);
                     informationDiv.toggle("slide", {direction : 'right'});
                 }
+                if($('#stationInfosBody').is(":hidden")) {
+                    titre.trigger("click");
+                } else {
+                    if($('#analysesBody').is(":visible")) analysesDiv.trigger("click");
+                }
                 if(filtreDiv.next('.panel-body').is(":visible")) filtreDiv.trigger("click");
-                if(analysesDiv.next('.panel-body').is(":visible")) analysesDiv.trigger("click");
             }
         },
 
+        /**
+         * méthode de gestion d'affichage du slide
+         * des menus d'information concernant une station
+         * @param e
+         *          information liée au click (fonction callback)
+         */
         toggleElement : function(e) {
             var targetDom = $(e.delegateTarget);
             targetDom.find("div.glyphicon").toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
-            var elementToggled = targetDom.next('.panel-body');
-            if(targetDom.is("#analyses") && elementToggled.is(":hidden")) {
+            var elementToToggle= targetDom.next('.panel-body');
+            if(targetDom.is("#analyses") && elementToToggle.is(":hidden")) {
                 $('#refreshButton2').trigger("click");
+                var stationInfos = $('#stationInfosBody');
+                if(stationInfos.is(":visible")) {
+                    console.log("ok");
+                    $('#titre').trigger('click');
+                }
             }
-            elementToggled.slideToggle("slow");
+            var analysis = $("#analysesBody");
+            if(targetDom.is('#stationInfos') && elementToToggle.is(":hidden") && analysis.is(":visible")) {
+                console.log("sisi");
+                $('#analyses').trigger('click');
+            }
+            elementToToggle.slideToggle("slow");
         },
 
+        /**
+         * méthode de gestion des filtres et de lancement
+         * de la récupération des analyses liées à la station
+         */
         showAnalysis : function() {
-            var station = stationActuelle;
-            var type = null;
-            var groupeMesure = null;
-            if(stationActuelle != stationPrecedente) {
+            listAnalysis.empty();
+            var station = currentSetting["station"];
+            var type = typeFilterAnalysisCombobox.val();
+            var groupeMesure = groupMeasuresCombobox.val();
+            if(type === "all") type = null;
+            if(groupeMesure === "all") groupeMesure = null;
+            if(currentSetting != lastSetting) {
+                console.log(station + " / " + type + " / " + groupeMesure);
                 APP.modules.service.getAnalysisNames(APP.modules.affichage.showAnalysisField, station, type, groupeMesure);
-                stationPrecedente = stationActuelle;
+                lastSetting['station'] = station;
             }
         },
 
+        /**
+         * méthode d'affichage des analyses
+         * @param data
+         *          données (analyses) reçu via AJAX
+         */
         showAnalysisField : function(data) {
             data.forEach(function(k, v) {
                 listAnalysis.append($('<li>', {
@@ -247,6 +307,15 @@ APP.modules.affichage =(function() {
                     class: 'list-group-item'
                 }));
             });
+        },
+
+        /**
+         * méthode de selection d'une analyse
+         */
+        selectAnalysis : function() {
+            var element = $(this);
+            $('#list-analysis').find('.active').removeClass('active');
+            element.toggleClass('active');
         }
 
     }
@@ -275,7 +344,7 @@ APP.modules.service = (function() {
          *          type de prelevement (filtre)
          */
         getStations : function(callback, type) {
-            addUrl = "/";
+            var addUrl = "/";
             if(type == "all") {
                 addUrl = "";
             } else {
@@ -319,8 +388,9 @@ APP.modules.service = (function() {
         getAnalysisNames : function(callback, station, type, groupe) {
             console.log("ok");
             var url = "index.php/api/analysis/" + station;
-            if(type != null) url += "/" + type;
-            if(groupe != null) url += "/" + groupe;
+            if(type) url += "/" + type; else url += "/null";
+            if(groupe) url += "/" + groupe; else url += "/null";
+            console.log("url : " + url);
             $.ajax( {
                 url : url,
                 type : 'POST',

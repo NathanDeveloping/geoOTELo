@@ -83,13 +83,13 @@ class HomeView
 </nav>
 
 <nav id="information" class="panel panel-default">
-                    <div class="panel-heading">
+                    <div class="panel-heading" id="stationInfos">
                         <h3 class="panel-title">
                             <p id="titre"></p>
                             <div class="glyphicon glyphicon-chevron-down pull-right"></div>
                         </h3>
                     </div>
-                    <div class="panel-body">
+                    <div class="panel-body" id="stationInfosBody">
                         <h4 id="nomStation"></h4>
                         <p id="description"></p>
                     </div>
@@ -103,7 +103,7 @@ class HomeView
                         <select class="selectpicker" id="typeFilterAnalysisCombobox" title="Type de prélèvement..." data-width="100%">
                               <option value="all">all</option>
                         </select>
-                        <select class="selectpicker" id="typeGroupMeasuresCombobox" title="Groupe de mesures..." data-width="100%">
+                        <select class="selectpicker" id="groupMeasuresCombobox" title="Groupe de mesures..." data-width="100%">
                               <option value="all">all</option>
                         </select>
                     </div>
@@ -113,11 +113,12 @@ class HomeView
                             <div class="glyphicon glyphicon-chevron-down pull-right"></div>
                         </h3>
                     </div>
-                    <div class="panel-body" id="analyses">
+                    <div class="panel-body" id="analysesBody">
                         <ul id="list-analysis" class="list-group">
                         </ul>
                         <button class="btn navbar-btn btn-default btn-block" id="refreshButton2"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
                         <button class="btn navbar-btn btn-success btn-block" id="openButton">Ouvrir</button>
+                        <button class="btn navbar-btn btn-success btn-block" id="download">Télécharger en XLSX</button>
                     </div>
 </nav>
 

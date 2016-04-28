@@ -28,6 +28,8 @@ $app->post('/api/types', function() use ($db) {
 
 $app->post('/api/analysis/:station(/:type(/:group))', function($station, $type = null, $group = null) use ($db) {
     $c = new AnalysisController($db);
+    if(strcmp($type, "null") == 0) $type = null;
+    if(strcmp($group, "null") == 0) $group = null;
     $c->getAnalysisNames($station, $type, $group);
 });
 
