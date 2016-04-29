@@ -70,7 +70,8 @@ class HomeView
     </nav>
 </header>
 
-<nav id="wrapper" class="navbar navbar-default">                    
+<nav id="wrapper" class="navbar navbar-default">          
+
                     <ul class="nav nav-pills nav-stacked">
                         <li role="presentation" class="active"><a href="#">Sample kind</a></li>
                         <li>
@@ -81,12 +82,8 @@ class HomeView
                         <li><button class="btn navbar-btn btn-default btn-block" id="refreshButton"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></li>
                     </ul>     
 </nav>
-
+          <button class="btn navbar-btn btn-default btn-block" id="openInformation"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span></button>
 <nav id="information" class="panel panel-default">
-                    
-                    <div id="toggleButton">
-                       <img id="toggleButtonImg" src="js/images/close.png"></img>
-                    </div>
                     <div class="panel-heading" id="stationInfos">
                         <h3 class="panel-title">
                             <p id="titre"></p>

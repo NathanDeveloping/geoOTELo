@@ -67,6 +67,7 @@ APP.modules.map = (function() {
             L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
+            map.on('click', APP.modules.affichage.closePanel);
         },
 
         /**
@@ -155,6 +156,7 @@ APP.modules.affichage =(function() {
     var listAnalysis = $('#list-analysis');
     var typeFilterAnalysisCombobox = $('#typeFilterAnalysisCombobox');
     var groupMeasuresCombobox = $('#groupMeasuresCombobox');
+    var openPanelButton = $('#openInformation');
 
     return {
 
@@ -210,9 +212,15 @@ APP.modules.affichage =(function() {
         showStationInformations : function(e) {
             var abb = e.target.options.abbreviation;
             if($.isEmptyObject(lastSetting)) {
+                if(openPanelButton.is(":visible")) {
+                    openPanelButton.toggle("slide", {direction : 'right'});
+                }
                 showPanel();
             } else {
                 if(abb != lastSetting["station"]) {
+                    if(openPanelButton.is(":visible")) {
+                        openPanelButton.toggle("slide", {direction : 'right'});
+                    }
                     showPanel();
                 }
             }
@@ -319,8 +327,28 @@ APP.modules.affichage =(function() {
             var element = $(this);
             $('#list-analysis').find('.active').removeClass('active');
             element.toggleClass('active');
-        }
+        },
 
+        /**
+         * méthode permettant de cacher le panneau
+         * d'information concernant la station
+         * et d'afficher un bouton de réouverture
+         */
+        closePanel : function() {
+            var informationDiv = $('#information');
+            if(informationDiv.is(":visible")) {
+                if(openPanelButton.is(":hidden")) {
+                    openPanelButton.click(function() {
+                        if(informationDiv.is(':hidden')) {
+                            informationDiv.toggle("slide", {direction: 'right'});
+                            openPanelButton.toggle("slide", {direction: 'right'});
+                        }
+                    });
+                    openPanelButton.toggle("slide", {direction : 'right'});
+                }
+                informationDiv.toggle("slide", {direction: 'right'});
+            }
+        }
     }
 
 })();
