@@ -63,7 +63,7 @@ class HomeView
             </div>
             <div class="pull-right">
                 <ul class="nav navbar-nav">
-                    <li><button type="submit" class="btn navbar-btn btn-default" id="filterButton">Filtrer</button></li>
+                    <li><button type="submit" class="btn navbar-btn btn-default" id="filterButton">Filter</button></li>
                 </ul>     
             </div>
         </div>
@@ -72,7 +72,7 @@ class HomeView
 
 <nav id="wrapper" class="navbar navbar-default">                    
                     <ul class="nav nav-pills nav-stacked">
-                        <li role="presentation" class="active"><a href="#">Type de prélèvement</a></li>
+                        <li role="presentation" class="active"><a href="#">Sample kind</a></li>
                         <li>
                                 <select class="selectpicker" id="typeCombobox" data-width="100%">
                                     <option value="all">all</option>
@@ -99,21 +99,21 @@ class HomeView
                     </div>
                     <div class="panel-heading" id="filtres">
                         <h3 class="panel-title">
-                            Filtres
+                            Filters
                             <div class="glyphicon glyphicon-chevron-up pull-right"></div>
                         </h3>
                     </div>
                     <div class="panel-body" id="filtresBody">
-                        <select class="selectpicker" id="typeFilterAnalysisCombobox" title="Type de prélèvement..." data-width="100%">
+                        <select class="selectpicker" id="typeFilterAnalysisCombobox" title="Sample kind..." data-width="100%">
                               <option value="all">all</option>
                         </select>
-                        <select class="selectpicker" id="groupMeasuresCombobox" title="Groupe de mesures..." data-width="100%">
+                        <select class="selectpicker" id="groupMeasuresCombobox" title="Measure group..." data-width="100%">
                               <option value="all">all</option>
                         </select>
                     </div>
                     <div class="panel-heading" id="analyses">
                         <h3 class="panel-title">
-                            Analyses
+                            Analysis
                             <div class="glyphicon glyphicon-chevron-up pull-right"></div>
                         </h3>
                     </div>
@@ -125,8 +125,8 @@ class HomeView
                         </div>
                         <div id="staticButton">
                             <button class="btn navbar-btn btn-default btn-block" id="refreshButton2"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
-                            <button class="btn navbar-btn btn-success btn-block" id="openButton">Ouvrir</button>
-                            <button class="btn navbar-btn btn-success btn-block" id="download">Télécharger en XLSX</button>
+                            <button class="btn navbar-btn btn-success btn-block" id="openButton">Open</button>
+                            <button class="btn navbar-btn btn-success btn-block" id="download">Download as XLSX</button>
                         </div>
                     </div>
 </nav>
