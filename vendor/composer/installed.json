@@ -40,58 +40,6 @@
         ]
     },
     {
-        "name": "katzgrau/klogger",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/katzgrau/KLogger.git",
-            "reference": "87735262be7c3bd210740b5cd4831dee3d827c46"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/katzgrau/KLogger/zipball/87735262be7c3bd210740b5cd4831dee3d827c46",
-            "reference": "87735262be7c3bd210740b5cd4831dee3d827c46",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3",
-            "psr/log": "1.0.0"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "4.0.*"
-        },
-        "time": "2015-11-04 22:43:22",
-        "type": "library",
-        "installation-source": "source",
-        "autoload": {
-            "psr-4": {
-                "Katzgrau\\KLogger\\": "src/"
-            },
-            "classmap": [
-                "src/"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Kenny Katzgrau",
-                "email": "katzgrau@gmail.com"
-            },
-            {
-                "name": "Dan Horrigan",
-                "email": "dan@dhorrigan.com"
-            }
-        ],
-        "description": "A Simple Logging Class",
-        "keywords": [
-            "logging"
-        ]
-    },
-    {
         "name": "phpoffice/phpexcel",
         "version": "1.8.1",
         "version_normalized": "1.8.1.0",
@@ -196,6 +144,58 @@
             "microframework",
             "rest",
             "router"
+        ]
+    },
+    {
+        "name": "katzgrau/klogger",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/katzgrau/KLogger.git",
+            "reference": "87735262be7c3bd210740b5cd4831dee3d827c46"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/katzgrau/KLogger/zipball/87735262be7c3bd210740b5cd4831dee3d827c46",
+            "reference": "87735262be7c3bd210740b5cd4831dee3d827c46",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3",
+            "psr/log": "1.0.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "4.0.*"
+        },
+        "time": "2015-11-04 22:43:22",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "Katzgrau\\KLogger\\": "src/"
+            },
+            "classmap": [
+                "src/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Kenny Katzgrau",
+                "email": "katzgrau@gmail.com"
+            },
+            {
+                "name": "Dan Horrigan",
+                "email": "dan@dhorrigan.com"
+            }
+        ],
+        "description": "A Simple Logging Class",
+        "keywords": [
+            "logging"
         ]
     }
 ]

@@ -97,7 +97,7 @@ class HomeView
                     <div class="panel-heading" id="filtres">
                         <h3 class="panel-title">
                             Filters
-                            <div class="glyphicon glyphicon-chevron-up pull-right"></div>
+                            <div class="glyphicon glyphicon-chevron-down pull-right"></div>
                         </h3>
                     </div>
                     <div class="panel-body" id="filtresBody">
@@ -118,6 +118,7 @@ class HomeView
                         <div id="response">
                             <ul id="list-analysis" class="list-group">
                             </ul>
+                            <img class="img-responsive center-block" id="loading" src="js/images/reload.gif">
                             <img id="notfoundimg" src="js/images/not_found.png">
                         </div>
                         <div id="staticButton">

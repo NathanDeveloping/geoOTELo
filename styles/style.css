@@ -119,6 +119,12 @@ body {
     width:100%;
 }
 
+#loading {
+    display : none;
+    margin-left:45%;
+    margin-top:30%;
+}
+
 #toggleButton {
     float:left;
     margin-top:2px;

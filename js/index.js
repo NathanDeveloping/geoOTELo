@@ -276,7 +276,6 @@ APP.modules.affichage =(function() {
                         $('#titre').trigger('click');
                     }
                 }
-                console.log("toggle");
                 $('#staticButton').slideToggle('slow');
             }
             var analysis = $("#analysesBody");
@@ -401,7 +400,10 @@ APP.modules.service = (function() {
                 url : "index.php/api/types",
                 type : 'POST',
                 dataType: 'json',
-                success: callback
+                success: callback,
+                error: function(xhr, error){
+                    console.log(xhr); console.log(error);
+                }
             });
         },
 
@@ -420,6 +422,7 @@ APP.modules.service = (function() {
             var url = "index.php/api/analysis/" + station;
             if(type) url += "/" + type; else url += "/null";
             if(groupe) url += "/" + groupe; else url += "/null";
+            $('#loading').show();
             $.ajax( {
                 url : url,
                 type : 'POST',
@@ -428,6 +431,9 @@ APP.modules.service = (function() {
                 error: function() {
                     $('#list-analysis').hide();
                     $('#notfoundimg').show();
+                },
+                complete : function() {
+                    $('#loading').hide();
                 }
             });
         }
