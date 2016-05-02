@@ -24,6 +24,7 @@ var APP = (function() {
             $('#refreshButton2').click(APP.modules.affichage.showAnalysis);
             $(document).on('click', '.list-group-item', APP.modules.affichage.selectAnalysis);
             $('#download').click(APP.modules.utility.downloadXLSX);
+            $('.filtersSelect').on('change', APP.modules.affichage.showAnalysis);
         }
     }
 })();
@@ -174,7 +175,6 @@ APP.modules.affichage =(function() {
          * @param data
          */
         initTypeComboboxes : function(data) {
-
             data.forEach(function(k, v) {
                 typeFilterAnalysisCombobox.append($('<option>', {
                     value: k,
@@ -185,7 +185,7 @@ APP.modules.affichage =(function() {
                     text: k
                 }));
             });
-
+            $('.selectpicker').selectpicker('refresh')
         },
 
         /**
@@ -384,7 +384,13 @@ APP.modules.service = (function() {
                 url : "index.php/api/stations" + addUrl,
                 type : 'POST',
                 dataType: 'json',
-                success: callback
+                success: callback,
+                error : function() {
+                    $.notify( {
+                        message : "Station's recovery impossible.",
+                        type : 'warning'
+                    });
+                }
             });
         },
 
@@ -394,6 +400,7 @@ APP.modules.service = (function() {
          *
          * @param callback
          *          fonction de traitement des donnees
+         *
          */
         getTypes : function(callback) {
             $.ajax( {
@@ -401,8 +408,12 @@ APP.modules.service = (function() {
                 type : 'POST',
                 dataType: 'json',
                 success: callback,
-                error: function(xhr, error){
-                    console.log(xhr); console.log(error);
+                error : function(xhr, error) {
+                    console.log(xhr, error);
+                    $('body').notify( {
+                        message : "Sample kind's recovery impossible",
+                        type : 'warning'
+                    });
                 }
             });
         },

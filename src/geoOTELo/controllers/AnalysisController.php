@@ -43,7 +43,7 @@ class AnalysisController
                     if(is_null($filterAnalysisGroup)) {
                         $arr = iterator_to_array($collection->find(array("INTRO.STATION.ABBREVIATION" => $station), array('_id' => true)));
                     } else {
-                        $arr = iterator_to_array($collection->find(array('_id' => array('$regex' => new MongoRegex("/$filterAnalysisGroup/")), "INTRO.STATION.ABBREVIATION" => $station), array('_id' => true)));
+                        $arr = iterator_to_array($collection->find(array('_id' => array('$regex' => new MongoRegex("/$filterAnalysisGroup/i")), "INTRO.STATION.ABBREVIATION" => $station), array('_id' => true)));
                     }
                     break;
                 }

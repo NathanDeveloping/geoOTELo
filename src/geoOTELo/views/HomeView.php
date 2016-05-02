@@ -101,10 +101,10 @@ class HomeView
                         </h3>
                     </div>
                     <div class="panel-body" id="filtresBody">
-                        <select class="selectpicker" id="typeFilterAnalysisCombobox" title="Sample kind..." data-width="100%">
+                        <select class="selectpicker filtersSelect" id="typeFilterAnalysisCombobox" title="Sample kind..." data-width="100%">
                               <option value="all">all</option>
                         </select>
-                        <select class="selectpicker" id="groupMeasuresCombobox" title="Measure group..." data-width="100%">
+                        <select class="selectpicker filtersSelect" id="groupMeasuresCombobox" title="Measure group..." data-width="100%">
                               <option value="all">all</option>
                         </select>
                     </div>
@@ -121,12 +121,12 @@ class HomeView
                             <img class="img-responsive center-block" id="loading" src="js/images/reload.gif">
                             <img id="notfoundimg" src="js/images/not_found.png">
                         </div>
-                        <div id="staticButton">
+                    </div>
+                                            <div id="staticButton">
                             <button class="btn navbar-btn btn-default btn-block" id="refreshButton2"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
                             <button class="btn navbar-btn btn-success btn-block" id="openButton">Open</button>
                             <button class="btn navbar-btn btn-success btn-block" id="download">Download as XLSX</button>
                         </div>
-                    </div>
 </nav>
 
 <section id="map" class="col-md-6">
@@ -140,6 +140,7 @@ class HomeView
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="js/bootstrap.min.js"></script>
 <script type="text/javascript" src="js/bootstrap-select.min.js"></script>
+<script type="text/javascript" src="js/bootstrap-notify.min.js"></script>
 <script type="text/javascript" src="js/leaflet.js"></script>
 <script type="text/javascript" src="js/leaflet.label.js"></script>
 <script type="text/javascript" src="js/index.js"></script>
