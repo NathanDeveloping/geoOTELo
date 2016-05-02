@@ -60,11 +60,3 @@ $app->post('/api/types', function() use ($db) {
 });
 
 $app->run();
-
-
-//$c = new TypeController($db);
-//$c->getTypes();
-
-//$c = new AnalysisController($db);
-//var_dump($c->getAnalysisNames("JOHA", null, "EA"));
-//var_dump($c->getAnalysisNames("JOHA"));
