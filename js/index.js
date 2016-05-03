@@ -44,7 +44,7 @@ APP.modules.map = (function() {
      *  @var markers : ensemble des marqueurs de la carte
      *  @var typeCombobox : selection du type de prélevement dans l'onglet de filtrage
      */
-    var map, markers;
+    var map, markers, circles;
     var lastTypeCombobox = $('#typeCombobox');
 
     return {
@@ -64,6 +64,7 @@ APP.modules.map = (function() {
                 markersData : [],
                 featureGroup : L.featureGroup().addTo(map),
             };
+            circles = L.featureGroup().addTo(map);
             //markers.featureGroup.on('click', APP.modules.affichage.showStationInformations);
             L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -134,6 +135,31 @@ APP.modules.map = (function() {
         },
 
         /**
+         * methode permettant de supprimer
+         * tous les cercle de selection presents sur la map
+         *
+         */
+        clearCircles : function() {
+            circles.clearLayers();
+        },
+
+        /**
+         * methode permettant d'ajouter un cercle de selection
+         * sur la map
+         *
+         * @param latlng
+         *             coordonnées du cercle et du marqueur cliqué
+         */
+        addCircle : function(latlng) {
+            var circle = new L.Circle(latlng, 50, {
+                color: 'black',
+                opacity : 0.8,
+                fillOpacity : 0.5
+            });
+            circles.addLayer(circle);
+        },
+
+        /**
          * methode permettant d'actualiser la carte
          * en fonction des options de filtrage
          */
@@ -146,6 +172,13 @@ APP.modules.map = (function() {
             APP.modules.service.getStations(APP.modules.map.affichageStations, type);
         },
 
+        /**
+         * gestion des combobox de type de prélèvement
+         * enregistre la dernière combobox modifiée
+         *
+         * @param lastCombobox
+         *              dernière combobox modifiée
+         */
         setLastTypeCombobox : function(lastCombobox) {
             lastTypeCombobox = lastCombobox;
         }
@@ -233,6 +266,9 @@ APP.modules.affichage =(function() {
             }
 
             function showPanel() {
+                APP.modules.map.clearCircles();
+                var latlng = e.latlng;
+                APP.modules.map.addCircle(latlng);
                 listAnalysis.empty();
                 currentSetting["station"] = abb;
                 var station = JSON.parse(sessionStorage.getItem(abb));
