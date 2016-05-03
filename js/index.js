@@ -45,7 +45,7 @@ APP.modules.map = (function() {
      *  @var typeCombobox : selection du type de prélevement dans l'onglet de filtrage
      */
     var map, markers;
-    var typeCombobox = $('#typeCombobox');
+    var lastTypeCombobox = $('#typeCombobox');
 
     return {
 
@@ -138,10 +138,17 @@ APP.modules.map = (function() {
          * en fonction des options de filtrage
          */
         refresh : function() {
-            type = typeCombobox.val();
+            if($(this).is('#refreshButton')) {
+                lastTypeCombobox = $('#typeCombobox');
+            }
+            var type = lastTypeCombobox.val();
             APP.modules.map.clearMarkers();
             APP.modules.service.getStations(APP.modules.map.affichageStations, type);
         },
+
+        setLastTypeCombobox : function(lastCombobox) {
+            lastTypeCombobox = lastCombobox;
+        }
 
     }
 })();
@@ -290,6 +297,10 @@ APP.modules.affichage =(function() {
          * de la récupération des analyses liées à la station
          */
         showAnalysis : function() {
+            if($(this).is('#typeFilterAnalysisCombobox')) {
+                APP.modules.map.setLastTypeCombobox($('#typeFilterAnalysisCombobox'));
+                APP.modules.map.refresh();
+            }
             listAnalysis.empty();
             var station = currentSetting["station"];
             var type = typeFilterAnalysisCombobox.val();
