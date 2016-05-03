@@ -156,3 +156,7 @@ body {
     right:10px;
     z-index: 10006;
 }
+
+#modalData {
+    z-index: 10007;
+}

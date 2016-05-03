@@ -25,6 +25,7 @@ var APP = (function() {
             $(document).on('click', '.list-group-item', APP.modules.affichage.selectAnalysis);
             $('#download').click(APP.modules.utility.downloadXLSX);
             $('.filtersSelect').on('change', APP.modules.affichage.showAnalysis);
+            $('#openButton').click(APP.modules.affichage.showModal);
         }
     }
 })();
@@ -393,6 +394,15 @@ APP.modules.affichage =(function() {
                     openPanelButton.toggle("slide", {direction : 'right'});
                 }
                 informationDiv.toggle("slide", {direction: 'right'});
+            }
+        },
+
+        showModal : function() {
+            var champ = $('#list-analysis').find('.active');
+            if(champ !== null) {
+                var fileName = champ.text();
+                $('#modal-title').text(fileName + " [DATA]");
+                $('#modalData').modal();
             }
         }
     }
