@@ -160,3 +160,22 @@ body {
 #modalData {
     z-index: 10007;
 }
+
+tr {
+    overflow-x : scroll;
+}
+
+.report-modal-body {
+    max-height:calc(100vh - 150px);
+    overflow-y:auto;
+    overflow-x:auto;
+}
+.report-pre {
+    width:100%;
+    overflow-x:auto;
+    margin:1px;
+}
+
+#data-table th, td{
+    min-width: 120px;
+}

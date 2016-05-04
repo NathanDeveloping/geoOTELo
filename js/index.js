@@ -17,7 +17,6 @@ var APP = (function() {
         init: function () {
             APP.modules.service.getStations(APP.modules.map.affichageStations, "all");
             APP.modules.service.getTypes(APP.modules.affichage.initTypeComboboxes);
-            APP.modules.affichage.initFilterGroupAnalysisCombobox();
             $('#filterButton').click(APP.modules.affichage.showFilterMenu);
             $('#refreshButton').click(APP.modules.map.refresh);
             $('.panel-heading').click(APP.modules.affichage.toggleElement);
@@ -25,6 +24,7 @@ var APP = (function() {
             $(document).on('click', '.list-group-item', APP.modules.affichage.selectAnalysis);
             $('#download').click(APP.modules.utility.downloadXLSX);
             $('.filtersSelect').on('change', APP.modules.affichage.showAnalysis);
+            $('#typeFilterAnalysisCombobox').on('change', APP.modules.affichage.initFilterGroupAnalysisCombobox);
             $('#openButton').click(APP.modules.affichage.showModal);
         }
     }
@@ -81,32 +81,6 @@ APP.modules.map = (function() {
             var icon = 'station-icon.png';
             var icon2x = 'station-icon-2x.png';
             var type = APP.modules.utility.baseName(this.url);
-            var iconTestUrl = type + "-icon.png";
-            var icon2xTestUrl = type + "-icon-2x.png";
-            if(type !== "stations") {
-                $.ajax({
-                    url:'js/images/' + iconTestUrl,
-                    type:'HEAD',
-                    async: false,
-                    success: function() {
-                        changeIcon();
-                    }
-                });
-                $.ajax({
-                    url:'js/images/' + icon2xTestUrl,
-                    type:'HEAD',
-                    async: false,
-                    success: function() {
-                        changeIcon2x();
-                    }
-                });
-                function changeIcon() {
-                    icon = iconTestUrl;
-                }
-                function changeIcon2x() {
-                    icon2x = icon2xTestUrl;
-                }
-            }
             var stationIcon = L.icon({
                 iconUrl: 'js/images/' + icon,
                 iconRetinaUrl: 'js/images/' + icon2x,
@@ -235,13 +209,33 @@ APP.modules.affichage =(function() {
          * filtre des informations de station
          */
         initFilterGroupAnalysisCombobox : function() {
+            console.log("on change");
+            groupMeasuresCombobox.empty();
             var groupAnalysis = ["PSD", "MIN", "EA", "PAC", "MIC", "XRF", "GP", "ISO", "DMT", "16S-MGE", "ECOLI-ENT", "PHAGE", "QMJ", "QTVAR", "CAMPY-VIRO", "MET-HAP"];
+            switch(typeFilterAnalysisCombobox.val()) {
+                case "all" :
+                    break;
+                case "sediment" :
+                    groupAnalysis = ["GP", "EA", "PSD", "XRF", "PAC"];
+                    break;
+                case "hydrology" :
+                    groupAnalysis = ["QMJ", "QTVAR"];
+                    break;
+                case "spm" :
+                    groupAnalysis = ["EA"];
+                    break;
+                case "water" :
+                    groupAnalysis = ["EA", "GP", "16S-MGE", "PHAGE", "PAC"];
+                    break;
+            }
             groupAnalysis.forEach(function(k, v) {
                 groupMeasuresCombobox.append($('<option>', {
                     value: k,
                     text: k
                 }));
             });
+            groupMeasuresCombobox.attr('disabled', false);
+            groupMeasuresCombobox.selectpicker('refresh');
         },
 
         /**
@@ -356,15 +350,15 @@ APP.modules.affichage =(function() {
          *          données (analyses) reçu via AJAX
          */
         showAnalysisField : function(data) {
-                data.forEach(function (k, v) {
-                    listAnalysis.append($('<li>', {
-                        value: k._id,
-                        text: k._id,
-                        class: 'list-group-item'
-                    }));
-                });
-                $('#notfoundimg').hide();
-                listAnalysis.show(500);
+            data.forEach(function (k, v) {
+                listAnalysis.append($('<li>', {
+                    value: k._id,
+                    text: k._id,
+                    class: 'list-group-item'
+                }));
+            });
+            $('#notfoundimg').hide();
+            listAnalysis.show(500);
         },
 
         /**
@@ -397,12 +391,49 @@ APP.modules.affichage =(function() {
             }
         },
 
+        /**
+         * methode permet d'afficher le pop-up des données
+         * du fichier d'analyse choisis
+         *
+         */
         showModal : function() {
             var champ = $('#list-analysis').find('.active');
             if(champ !== null) {
                 var fileName = champ.text();
-                $('#modal-title').text(fileName + " [DATA]");
+                $('.modal-title').text(fileName + " [DATA]");
+                APP.modules.service.getAnalysisData(APP.modules.affichage.createDataTable, fileName);
                 $('#modalData').modal();
+            }
+        },
+
+        /**
+         * methode callback ajax
+         * ajout des données
+         * @param data
+         */
+        createDataTable : function(data) {
+            var i = 0;
+            var dataTable = $("#data-table");
+            dataTable.empty();
+            if (data != null) {
+                data.SAMPLES.forEach(function(k, v) {
+                    if(i == 0) {
+                        dataTable.append($('<tr>'));
+                    }
+                    dataTable.append($('<tr>'));
+                    for(var property in k) {
+                        if(i==0) {
+                            dataTable.find("tr:first").append($('<th>', {
+                                text: property
+                            }));
+                        }
+                        $("#data-table").find("tr:last")
+                            .append($('<td>', {
+                                text : k[property]
+                            }));
+                    }
+                    i++;
+                })
             }
         }
     }
@@ -487,26 +518,48 @@ APP.modules.service = (function() {
          *          filtre groupe de mesure
          */
         getAnalysisNames : function(callback, station, type, groupe) {
-            var url = "index.php/api/analysis/" + station;
-            if(type) url += "/" + type; else url += "/null";
-            if(groupe) url += "/" + groupe; else url += "/null";
+            var url = "index.php/api/analysis/intro/" + station;
+            if (type) url += "/" + type; else url += "/null";
+            if (groupe) url += "/" + groupe; else url += "/null";
             $('#loading').show();
-            $.ajax( {
-                url : url,
-                type : 'POST',
+            $.ajax({
+                url: url,
+                type: 'POST',
                 dataType: 'json',
                 success: callback,
-                error: function() {
+                error: function () {
                     $('#list-analysis').hide();
                     $('#notfoundimg').show();
                 },
-                complete : function() {
+                complete: function () {
                     $('#loading').hide();
+                }
+            });
+        },
+
+        /**
+         * methode AJAX permettant de récuperer
+         * les données d'un fichier d'analyse precis
+         *
+         * @param callback
+         * @param name
+         *          nom du fichier d'analyses
+         */
+        getAnalysisData : function(callback, name) {
+            $.ajax( {
+                url : "index.php/api/analysis/data/" + name,
+                type : 'POST',
+                dataType: 'json',
+                success: callback,
+                error: function(xhr, err) {
+                    console.log(xhr);
+                    console.log(err);
+                },
+                complete : function() {
                 }
             });
         }
     }
-
 })();
 
 /**

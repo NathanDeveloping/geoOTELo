@@ -47,12 +47,17 @@ $app->post('/api/types', function() use ($db) {
     $c->getTypes();
 });
 
-$app->post('/api/analysis/:station(/:type(/:group))', function($station, $type = null, $group = null) use ($db) {
+$app->post('/api/analysis/intro/:station(/:type(/:group))', function($station, $type = null, $group = null) use ($db) {
     $c = new AnalysisController($db);
     if(strcmp($type, "null") == 0) $type = null;
     if(strcmp($group, "null") == 0) $group = null;
     $c->getAnalysisNames($station, $type, $group);
 });
+
+$app->post('/api/analysis/data/:name(/:page)', function($name, $page = null) use ($db) {
+    $c = new AnalysisController($db);
+    $c->getAnalysisData($name, $page);
+})->name('data');
 
 $app->post('/api/types', function() use ($db) {
     $c = new TypeController($db);
@@ -60,3 +65,9 @@ $app->post('/api/types', function() use ($db) {
 });
 
 $app->run();
+
+//$c = new AnalysisController($db);
+//$c->getAnalysisData("SED_20150722_MUSTA_XRF_S");
+
+//$c = new StationController($db);
+//$c->getStations("sediment");

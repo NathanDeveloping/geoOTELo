@@ -104,7 +104,7 @@ class HomeView
                         <select class="selectpicker filtersSelect" id="typeFilterAnalysisCombobox" title="Sample kind..." data-width="100%">
                               <option value="all">all</option>
                         </select>
-                        <select class="selectpicker filtersSelect" id="groupMeasuresCombobox" title="Measure group..." data-width="100%">
+                        <select disabled class="selectpicker filtersSelect" id="groupMeasuresCombobox" title="Measure group..." data-width="100%">
                               <option value="all">all</option>
                         </select>
                     </div>
@@ -134,12 +134,16 @@ class HomeView
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Modal Header</h4>
+        <h4 class="modal-title"></h4>
       </div>
-      <div class="modal-body">
-        <p>Some text in the modal.</p>
+      <div class="report-pre modal-body report-modal-body">
+        <table class="table" id="data-table">
+        </table>
+      </div>
       </div>
       <div class="modal-footer">
+        <ul class="pagination">
+        </ul>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
