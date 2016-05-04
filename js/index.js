@@ -24,7 +24,9 @@ var APP = (function() {
             $(document).on('click', '.list-group-item', APP.modules.affichage.selectAnalysis);
             $('#download').click(APP.modules.utility.downloadXLSX);
             $('.filtersSelect').on('change', APP.modules.affichage.showAnalysis);
-            $('#typeFilterAnalysisCombobox').on('change', APP.modules.affichage.initFilterGroupAnalysisCombobox);
+            var typeFilterAnalysisCombobox = $('#typeFilterAnalysisCombobox');
+            typeFilterAnalysisCombobox.on('change', APP.modules.affichage.initFilterGroupAnalysisCombobox);
+            typeFilterAnalysisCombobox.on('change', APP.modules.affichage.initSpecificMeasurementCombobox);
             $('#openButton').click(APP.modules.affichage.showModal);
         }
     }
@@ -172,6 +174,7 @@ APP.modules.affichage = (function() {
     var listAnalysis = $('#list-analysis');
     var typeFilterAnalysisCombobox = $('#typeFilterAnalysisCombobox');
     var groupMeasuresCombobox = $('#groupMeasuresCombobox');
+    var specificMeasureCombobox = $('#specificMeasurementCombobox');
     var openPanelButton = $('#openInformation');
 
     return {
@@ -227,6 +230,10 @@ APP.modules.affichage = (function() {
                     groupAnalysis = {"EA" : "Element Analysis", "GP" : "Global Parameters", "16S-MGE" : "", "PHAGE" : "", "PAC" : "Polyclic Aromatic Compounds"};
                     break;
             }
+            groupMeasuresCombobox.append($('<option>', {
+                value: "all",
+                text : "all"
+            }));
             for (var index in groupAnalysis) {
                 groupMeasuresCombobox.append($('<option>', {
                     value: index,
@@ -235,6 +242,42 @@ APP.modules.affichage = (function() {
             }
             groupMeasuresCombobox.attr('disabled', false);
             groupMeasuresCombobox.selectpicker('refresh');
+        },
+
+        /**
+         * méthode permettant d'initialiser
+         */
+        initSpecificMeasurementCombobox : function() {
+            specificMeasureCombobox.empty();
+            var measurements = null;
+            switch(typeFilterAnalysisCombobox.val()) {
+                case "all" :
+                    break;
+                case "sediment" :
+                    break;
+                case "hydrology" :
+                    break;
+                case "spm" :
+                    break;
+                case "water" :
+                    measurements = {"TSS" : "Total Suspended Solid concentration", "turb" : "turbidity"};
+                    break;
+            }
+            specificMeasureCombobox.append($('<option>', {
+                value: 'none',
+                text: 'none'
+            }));
+            for (var index in measurements) {
+                specificMeasureCombobox.append($('<option>', {
+                    value: index,
+                    html: index + " : <i>" + measurements[index] + "</i>"
+                }));
+            }
+            if(measurements != null) {
+                console.log("lololol");
+                specificMeasureCombobox.attr('disabled', false);
+            }
+            specificMeasureCombobox.selectpicker('refresh');
         },
 
         /**
@@ -288,10 +331,8 @@ APP.modules.affichage = (function() {
                 }
                 if($('#stationInfosBody').is(":hidden")) {
                     titre.trigger("click");
-                } else {
-                    if($('#analysesBody').is(":visible")) analysesDiv.trigger("click");
                 }
-                if(filtreDiv.next('.panel-body').is(":visible")) filtreDiv.trigger("click");
+                if($('#analysesBody').is(":visible")) analysesDiv.trigger("click");
             }
         },
 
@@ -306,20 +347,9 @@ APP.modules.affichage = (function() {
             targetDom.find("div.glyphicon").toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
             var elementToToggle= targetDom.next('.panel-body');
             if(targetDom.is("#analyses") ) {
-                if(elementToToggle.is(":hidden")) {
-                    $('#refreshButton2').trigger("click");
-                    var stationInfos = $('#stationInfosBody');
-                    if (stationInfos.is(":visible")) {
-                        $('#titre').trigger('click');
-                    }
-                }
-                $('#staticButton').slideToggle('slow');
+                 $('#refreshButton2').trigger("click");
             }
             var analysis = $("#analysesBody");
-            if(targetDom.is('#stationInfos') && elementToToggle.is(":hidden") && analysis.is(":visible")) {
-                $('#analyses').trigger('click');
-            }
-            elementToToggle.slideToggle("slow");
         },
 
         /**
@@ -335,10 +365,12 @@ APP.modules.affichage = (function() {
             var station = currentSetting["station"];
             var type = typeFilterAnalysisCombobox.val();
             var groupeMesure = groupMeasuresCombobox.val();
+            var specificMeasurement = specificMeasureCombobox.val();
             if(type === "all") type = null;
             if(groupeMesure === "all") groupeMesure = null;
+            if(specificMeasurement === "none" || specificMeasurement == "") specificMeasurement = null;
             if(currentSetting != lastSetting) {
-                APP.modules.service.getAnalysisNames(APP.modules.affichage.showAnalysisField, station, type, groupeMesure);
+                APP.modules.service.getAnalysisNames(APP.modules.affichage.showAnalysisField, station, type, groupeMesure, specificMeasurement);
                 lastSetting['station'] = station;
             }
         },
@@ -516,10 +548,11 @@ APP.modules.service = (function() {
          * @param groupe
          *          filtre groupe de mesure
          */
-        getAnalysisNames : function(callback, station, type, groupe) {
+        getAnalysisNames : function(callback, station, type, groupe, specificMeasurement) {
             var url = "index.php/api/analysis/intro/" + station;
             if (type) url += "/" + type; else url += "/null";
             if (groupe) url += "/" + groupe; else url += "/null";
+            if(specificMeasurement) url += "/" + specificMeasurement; else url += "/null";
             $('#loading').show();
             $.ajax({
                 url: url,

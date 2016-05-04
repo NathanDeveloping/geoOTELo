@@ -67,7 +67,7 @@ body {
 }
 
 #wrapper button {
-    margin:0px;
+    margin:0;
 }
 
 #typeCombobox {
@@ -76,7 +76,7 @@ body {
 
 .list-group  {
     overflow-y:auto;
-    height:300px;
+    height:100%;
 }
 
 .list-group-item  {
@@ -89,14 +89,15 @@ body {
     margin-bottom:5px;
 }
 
-#analysesBody {
-    margin: 0;
-    margin-top:10px;
-    display:none;
+#collapse2 {
+    height:88%;
 }
 
-#filtersBody {
-    display:none;
+#analysesBody {
+    height:100%;
+    margin: 0;
+    margin-top:10px;
+    border-top : 0;
 }
 
 .glyphicon-chevron-down {
@@ -108,16 +109,16 @@ body {
 }
 
 #response {
-    height:1%;
     bottom:100px;
+    margin-top:5px;
+    margin-bottom:5px;
+    height:52%;
 }
 
-#staticButton {
-    width:90%;
-    position:absolute;
-    bottom:10px;
-    right:20px;
-    display:none;
+#analyses-footer {
+    height:25%;
+   margin-top:10px;
+    margin-bottom:5px;
 }
 
 #notfoundimg {
@@ -125,7 +126,7 @@ body {
 }
 
 #loading {
-    /*display : none;*/
+    display : none;
     margin-left:45%;
     margin-top:30%;
 }
@@ -139,6 +140,7 @@ body {
     z-index: 10005;
     cursor:pointer;
 }
+
 
 #toggleButtonImg {
     margin-left:2px;
@@ -178,4 +180,19 @@ tr {
 
 #data-table th, td{
     min-width: 120px;
+}
+
+#panelGroup {
+    margin-bottom : 0;
+}
+
+#filtersDiv {
+    height: 25%;
+    margin-bottom:5px;
+}
+
+#staticButton {
+    width:89%;
+    position:absolute;
+    bottom:10px;
 }

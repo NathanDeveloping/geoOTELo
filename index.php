@@ -47,11 +47,12 @@ $app->post('/api/types', function() use ($db) {
     $c->getTypes();
 });
 
-$app->post('/api/analysis/intro/:station(/:type(/:group))', function($station, $type = null, $group = null) use ($db) {
+$app->post('/api/analysis/intro/:station(/:type(/:group(/:specificMeasurement)))', function($station, $type = null, $group = null, $specificMeasurement = null) use ($db) {
     $c = new AnalysisController($db);
     if(strcmp($type, "null") == 0) $type = null;
     if(strcmp($group, "null") == 0) $group = null;
-    $c->getAnalysisNames($station, $type, $group);
+    if(strcmp($specificMeasurement, "null") == 0) $specificMeasurement = null;
+    $c->getAnalysisNames($station, $type, $group, $specificMeasurement);
 });
 
 $app->post('/api/analysis/data/:name(/:page)', function($name, $page = null) use ($db) {
