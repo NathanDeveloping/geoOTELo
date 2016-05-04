@@ -79,6 +79,12 @@ class HomeView
                                     <option value="all">all</option>
                                 </select>
                         </li>
+                        <li role="presentation" class="active"><a href="#">Measurement</a></li>
+                        <li>
+                                <select class="selectpicker" id="measurementCombobox" data-width="100%">
+                                    <option value="all">all</option>
+                                </select>
+                        </li>
                         <li><button class="btn navbar-btn btn-default btn-block" id="refreshButton"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></li>
                     </ul>     
 </nav>

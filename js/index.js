@@ -161,7 +161,7 @@ APP.modules.map = (function() {
     }
 })();
 
-APP.modules.affichage =(function() {
+APP.modules.affichage = (function() {
 
     /**
      * @var typeCombobox : selection du type de prélevement dans l'onglet de filtrage
@@ -209,31 +209,30 @@ APP.modules.affichage =(function() {
          * filtre des informations de station
          */
         initFilterGroupAnalysisCombobox : function() {
-            console.log("on change");
             groupMeasuresCombobox.empty();
-            var groupAnalysis = ["PSD", "MIN", "EA", "PAC", "MIC", "XRF", "GP", "ISO", "DMT", "16S-MGE", "ECOLI-ENT", "PHAGE", "QMJ", "QTVAR", "CAMPY-VIRO", "MET-HAP"];
+            var groupAnalysis = {"PSD" : "Particle Size Distribution", "MIN" : "", "EA" : "Element Analysis", "PAC" : "Polyclic Aromatic Compounds", "MIC" : "", "XRF" : "", "GP" : "Global Parameters", "ISO" : "", "DMT" : "Donnan Membrane Technique", "16S-MGE" : "", "ECOLI-ENT" : "", "PHAGE" : "", "QMJ" : "Daily Integrated Flow", "QTVAR" : "Instantaneous Flow", "CAMPY-VIRO" : "", "MET-HAP" : ""};
             switch(typeFilterAnalysisCombobox.val()) {
                 case "all" :
                     break;
                 case "sediment" :
-                    groupAnalysis = ["GP", "EA", "PSD", "XRF", "PAC"];
+                    groupAnalysis = {"GP" : "Global Parameters", "EA" : "Element Analysis", "PSD" : "Particle Size Distribution", "XRF" : "", "PAC" : "Polyclic Aromatic Compounds"};
                     break;
                 case "hydrology" :
-                    groupAnalysis = ["QMJ", "QTVAR"];
+                    groupAnalysis = {"QMJ" : "Daily Integrated Flow", "QTVAR" : "Instantaneous Flow"};
                     break;
                 case "spm" :
-                    groupAnalysis = ["EA"];
+                    groupAnalysis = {"EA" : "Element Analysis"};
                     break;
                 case "water" :
-                    groupAnalysis = ["EA", "GP", "16S-MGE", "PHAGE", "PAC"];
+                    groupAnalysis = {"EA" : "Element Analysis", "GP" : "Global Parameters", "16S-MGE" : "", "PHAGE" : "", "PAC" : "Polyclic Aromatic Compounds"};
                     break;
             }
-            groupAnalysis.forEach(function(k, v) {
+            for (var index in groupAnalysis) {
                 groupMeasuresCombobox.append($('<option>', {
-                    value: k,
-                    text: k
+                    value: index,
+                    html: index + " : <i>" + groupAnalysis[index] + "</i>"
                 }));
-            });
+            }
             groupMeasuresCombobox.attr('disabled', false);
             groupMeasuresCombobox.selectpicker('refresh');
         },
