@@ -92,12 +92,12 @@ class AnalysisController
         }
         foreach ($this->listCollections as $collection) {
             if (strcmp($collection->getName(), $type) == 0) {
-               $res = iterator_to_array($collection->find(array("_id" => $analysisName), array('DATA.SAMPLES' => true, '_id' => false))->skip(10* ($page-1)));
+               $res = iterator_to_array($collection->find(array("_id" => $analysisName), array('DATA.SAMPLES' => true, "INTRO.MEASUREMENT" => true, '_id' => false)));
             }
         }
         $res = array_values($res);
         if(!empty($res)) {
-            echo json_encode(array('SAMPLES' => $res[0]['DATA']['SAMPLES'], 'links' => array('self' => "bonjour")));
+            echo json_encode(array("SAMPLES" => array_slice($res[0]['DATA']['SAMPLES'], 0, 5), "MEASUREMENT" => $res[0]['INTRO']['MEASUREMENT']));
             //$app->urlFor('data', array('name' => $analysisName, 'page' => $page)
         }
     }

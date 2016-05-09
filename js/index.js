@@ -274,7 +274,6 @@ APP.modules.affichage = (function() {
                 }));
             }
             if(measurements != null) {
-                console.log("lololol");
                 specificMeasureCombobox.attr('disabled', false);
             }
             specificMeasureCombobox.selectpicker('refresh');
@@ -450,12 +449,30 @@ APP.modules.affichage = (function() {
                 data.SAMPLES.forEach(function(k, v) {
                     if(i == 0) {
                         dataTable.append($('<tr>'));
+                        dataTable.append($('<tr>'));
                     }
                     dataTable.append($('<tr>'));
                     for(var property in k) {
                         if(i==0) {
                             dataTable.find("tr:first").append($('<th>', {
-                                text: property
+                                text: property,
+                                class : 'info'
+                            }));
+                            var unit = null;
+                            try {
+                                data.MEASUREMENT.forEach(function (k, v) {
+                                    if (k.NATURE == property) {
+                                        unit = k.UNIT;
+                                        throw new Exception("break forEach");
+                                    }
+                                });
+                            } catch(e) {}
+                            if(unit == null && property != 'station' && property != 'sample kind' && property != 'date' && property != 'hour' && property != "Sampling station") {
+                                unit = "not specified";
+                            }
+                            dataTable.find("tr:eq(1)").append($('<td>', {
+                                text: unit,
+                                class : 'info'
                             }));
                         }
                         $("#data-table").find("tr:last")
@@ -479,8 +496,7 @@ APP.modules.affichage = (function() {
  * @type {{getStations}}
  */
 APP.modules.service = (function() {
-
-
+    
     return {
 
         /**
@@ -528,8 +544,7 @@ APP.modules.service = (function() {
                 dataType: 'json',
                 success: callback,
                 error : function(xhr, error) {
-                    console.log(xhr, error);
-                    $('body').notify( {
+                    $('body').notify({
                         message : "Sample kind's recovery impossible",
                         type : 'warning'
                     });
@@ -584,8 +599,6 @@ APP.modules.service = (function() {
                 dataType: 'json',
                 success: callback,
                 error: function(xhr, err) {
-                    console.log(xhr);
-                    console.log(err);
                 },
                 complete : function() {
                 }
