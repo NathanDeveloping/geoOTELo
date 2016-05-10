@@ -22,7 +22,11 @@ $log = new Logger($logDir, LogLevel::ERROR, array(
 ));
 
 try {
-    $m = new MongoClient("mongodb://" . $config['host'] . ':' . $config['port'], array('journal' => $config['journal']));
+    if(empty($config['authSource']) && empty($config['username']) && empty($config['password'])) {
+        $m = new MongoClient("mongodb://" . $config['host'] . ':' . $config['port'], array('journal' => $config['journal']));
+    } else {
+        $m = new MongoClient("mongodb://" . $config['host'] . ':' . $config['port'], array('journal' => $config['journal'], 'authSource' => $config['authSource'], 'username' => $config['username'], 'password' => $config['password']));
+    }
 } catch (Exception $e) {
     $log->error(utf8_encode($e->getMessage()));
     $c = new \geoOTELo\controllers\ErrorController();
