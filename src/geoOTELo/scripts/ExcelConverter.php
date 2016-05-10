@@ -52,7 +52,11 @@ class ExcelConverter {
             'dateFormat' => 'G:i:s'
         ));
         try {
-            $this->db = new MongoClient("mongodb://" . $config['host'] . ':' . $config['port'], array('journal' => $config['journal']));
+            if(empty($config['authSource']) && empty($config['username']) && empty($config['password'])) {
+                $this->db = new MongoClient("mongodb://" . $config['host'] . ':' . $config['port'], array('journal' => $config['journal']));
+            } else {
+                $this->db= new MongoClient("mongodb://" . $config['host'] . ':' . $config['port'], array('journal' => $config['journal'], 'authSource' => $config['authSource'], 'username' => $config['username'], 'password' => $config['password']));
+            }
         } catch (Exception $e) {
             echo $e->getMessage();
             $this->logger->error($e->getMessage());
