@@ -12,6 +12,7 @@ use Slim\Slim;
 use MongoCollection;
 use MongoClient;
 use geoOTELo\utils\Utility;
+use MongoRegex;
 
 /**
  * Class StationController
@@ -48,7 +49,7 @@ class StationController
      * @param null $typePrelevement
      *              filtre sur le type de prélevement
      */
-    public function getStations($typePrelevement = null)
+    public function getStations($typePrelevement = null, $specificMeasurement = null)
     {
         $arr = array();
         if(is_null($typePrelevement)) {
@@ -58,7 +59,11 @@ class StationController
         } else {
             foreach($this->listCollections as $collection) {
                 if(strcmp($collection->getName(), $typePrelevement) == 0) {
-                    $arr = $collection->distinct("INTRO.STATION");
+                    if(is_null($specificMeasurement)) {
+                        $arr = $collection->distinct("INTRO.STATION");
+                    } else {
+                        $arr = $collection->distinct("INTRO.STATION", array("INTRO.MEASUREMENT.ABBREVIATION" => array('$regex' => new MongoRegex("/$specificMeasurement/i"))));
+                    }
                     break;
                 }
             }

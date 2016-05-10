@@ -37,9 +37,11 @@ $app->get('/', function() {
     $c->accueil();
 });
 
-$app->post('/api/stations(/:type)', function($type = null) use ($db) {
+$app->post('/api/stations(/:type(/:specificMeasurement))', function($type = null, $specificMeasurement = null) use ($db) {
     $c = new StationController($db);
-    $c->getStations($type);
+    if(strcmp($type, "null") == 0) $type = null;
+    if(strcmp($specificMeasurement, "none") == 0) $specificMeasurement = null;
+    $c->getStations($type, $specificMeasurement);
 });
 
 $app->post('/api/types', function() use ($db) {
@@ -71,4 +73,4 @@ $app->run();
 //$c->getAnalysisData("SED_20150722_MUSTA_XRF_S");
 
 //$c = new StationController($db);
-//$c->getStations("sediment");
+//$c->getStations("water", "TSS");

@@ -15,7 +15,7 @@ var APP = (function() {
     return {
         modules: {},
         init: function () {
-            APP.modules.service.getStations(APP.modules.map.affichageStations, "all");
+            APP.modules.service.getStations(APP.modules.map.affichageStations, "all", "none");
             APP.modules.service.getTypes(APP.modules.affichage.initTypeComboboxes);
             $('#filterButton').click(APP.modules.affichage.showFilterMenu);
             $('#refreshButton').click(APP.modules.map.refresh);
@@ -24,6 +24,9 @@ var APP = (function() {
             $(document).on('click', '.list-group-item', APP.modules.affichage.selectAnalysis);
             $('#download').click(APP.modules.utility.downloadXLSX);
             $('.filtersSelect').on('change', APP.modules.affichage.showAnalysis);
+            var typeCombobox = $('#typeCombobox');
+            typeCombobox.on('change', APP.modules.affichage.initSpecificMeasurementCombobox);
+            $('.filterStation').on('change', APP.modules.map.refresh);
             var typeFilterAnalysisCombobox = $('#typeFilterAnalysisCombobox');
             typeFilterAnalysisCombobox.on('change', APP.modules.affichage.initFilterGroupAnalysisCombobox);
             typeFilterAnalysisCombobox.on('change', APP.modules.affichage.initSpecificMeasurementCombobox);
@@ -80,6 +83,7 @@ APP.modules.map = (function() {
          * @param data
          */
         affichageStations : function(data) {
+            console
             var icon = 'station-icon.png';
             var icon2x = 'station-icon-2x.png';
             var type = APP.modules.utility.baseName(this.url);
@@ -141,12 +145,13 @@ APP.modules.map = (function() {
          * en fonction des options de filtrage
          */
         refresh : function() {
-            if($(this).is('#refreshButton')) {
-                lastTypeCombobox = $('#typeCombobox');
+            lastTypeCombobox = $('#typeCombobox');
+            var specificMeasurement = $('#measurementCombobox').val();
+            if(lastTypeCombobox != null && specificMeasurement != null) {
+                var type = lastTypeCombobox.val();
+                APP.modules.map.clearMarkers();
+                APP.modules.service.getStations(APP.modules.map.affichageStations, type, specificMeasurement);
             }
-            var type = lastTypeCombobox.val();
-            APP.modules.map.clearMarkers();
-            APP.modules.service.getStations(APP.modules.map.affichageStations, type);
         },
 
         /**
@@ -213,12 +218,12 @@ APP.modules.affichage = (function() {
          */
         initFilterGroupAnalysisCombobox : function() {
             groupMeasuresCombobox.empty();
-            var groupAnalysis = {"PSD" : "Particle Size Distribution", "MIN" : "", "EA" : "Element Analysis", "PAC" : "Polyclic Aromatic Compounds", "MIC" : "", "XRF" : "", "GP" : "Global Parameters", "ISO" : "", "DMT" : "Donnan Membrane Technique", "16S-MGE" : "", "ECOLI-ENT" : "", "PHAGE" : "", "QMJ" : "Daily Integrated Flow", "QTVAR" : "Instantaneous Flow", "CAMPY-VIRO" : "", "MET-HAP" : ""};
+            var groupAnalysis = {"PSD" : "Particle Size Distribution", "MIN" : "Mineralogy", "EA" : "Element Analysis", "PAC" : "Polycyclic Aromatic Compounds", "MIC" : "Microbiology", "XRF" : "X-Ray Fluorescence", "GP" : "Global Parameters", "ISO" : "Isotopic", "DMT" : "Donnan Membrane Technique", "16S-MGE" : "", "ECOLI-ENT" : "", "PHAGE" : "", "QMJ" : "Daily Integrated Flow", "QTVAR" : "Instantaneous Flow", "CAMPY-VIRO" : "", "MET-HAP" : ""};
             switch(typeFilterAnalysisCombobox.val()) {
                 case "all" :
                     break;
                 case "sediment" :
-                    groupAnalysis = {"GP" : "Global Parameters", "EA" : "Element Analysis", "PSD" : "Particle Size Distribution", "XRF" : "", "PAC" : "Polyclic Aromatic Compounds"};
+                    groupAnalysis = {"GP" : "Global Parameters", "EA" : "Element Analysis", "PSD" : "Particle Size Distribution", "XRF" : "X-Ray Fluorescence", "PAC" : "Polyclic Aromatic Compounds"};
                     break;
                 case "hydrology" :
                     groupAnalysis = {"QMJ" : "Daily Integrated Flow", "QTVAR" : "Instantaneous Flow"};
@@ -247,10 +252,15 @@ APP.modules.affichage = (function() {
         /**
          * méthode permettant d'initialiser
          */
-        initSpecificMeasurementCombobox : function() {
-            specificMeasureCombobox.empty();
+        initSpecificMeasurementCombobox : function(e) {
+            var target = $(e.target);
+            var combobox = specificMeasureCombobox;
+            if(target.is("#typeCombobox")) {
+                combobox = $('#measurementCombobox');
+            }
+            combobox.empty();
             var measurements = null;
-            switch(typeFilterAnalysisCombobox.val()) {
+            switch(target.val()) {
                 case "all" :
                     break;
                 case "sediment" :
@@ -263,20 +273,20 @@ APP.modules.affichage = (function() {
                     measurements = {"TSS" : "Total Suspended Solid concentration", "turb" : "turbidity"};
                     break;
             }
-            specificMeasureCombobox.append($('<option>', {
+            combobox.append($('<option>', {
                 value: 'none',
                 text: 'none'
             }));
             for (var index in measurements) {
-                specificMeasureCombobox.append($('<option>', {
+                combobox.append($('<option>', {
                     value: index,
                     html: index + " : <i>" + measurements[index] + "</i>"
                 }));
             }
             if(measurements != null) {
-                specificMeasureCombobox.attr('disabled', false);
+                combobox.attr('disabled', false);
             }
-            specificMeasureCombobox.selectpicker('refresh');
+            combobox.selectpicker('refresh');
         },
 
         /**
@@ -507,13 +517,20 @@ APP.modules.service = (function() {
          *          fonction de traitement des donnees
          * @param type
          *          type de prelevement (filtre)
+         * @param specificMeasurement
+         *          mesure spécifique
          */
-        getStations : function(callback, type) {
+        getStations : function(callback, type, specificMeasurement) {
             var addUrl = "/";
             if(type == "all") {
-                addUrl = "";
+                addUrl += "null";
             } else {
                 addUrl = "/" + type;
+            }
+            if(specificMeasurement == "none") {
+                addUrl+= "/none";
+            } else {
+                addUrl+= "/" + specificMeasurement;
             }
             $.ajax( {
                 url : "index.php/api/stations" + addUrl,

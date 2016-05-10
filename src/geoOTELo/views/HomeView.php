@@ -75,14 +75,14 @@ class HomeView
                     <ul class="nav nav-pills nav-stacked">
                         <li role="presentation" class="active"><a href="#">Sample kind</a></li>
                         <li>
-                                <select class="selectpicker" id="typeCombobox" data-width="100%">
+                                <select class="selectpicker filterStation" id="typeCombobox" data-width="100%">
                                     <option value="all">all</option>
                                 </select>
                         </li>
                         <li role="presentation" class="active"><a href="#">Measurement</a></li>
                         <li>
-                                <select class="selectpicker" id="measurementCombobox" data-width="100%">
-                                    <option value="all">all</option>
+                                <select class="selectpicker filterStation" id="measurementCombobox" data-width="100%" disabled>
+                                    <option value="none">none</option>
                                 </select>
                         </li>
                         <li><button class="btn navbar-btn btn-default btn-block" id="refreshButton"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></li>
