@@ -401,12 +401,16 @@ class ExcelConverter {
                             case "STATION" :
                                 (isset($count[$key])) ? $count[$key]++ : $count[$key] = 1;
                                 $activeField = "STATION";
-                                $longitude = $sheet->getCellByColumnAndRow(3, $ligne)->getValue();
+                                $longitude = trim($sheet->getCellByColumnAndRow(3, $ligne)->getFormattedValue());
+                                $latitude = trim($sheet->getCellByColumnAndRow(4, $ligne)->getValue());
+                                if(!is_numeric($longitude) || !is_numeric($latitude)) {
+                                    throw new Exception("Format de coordonnées géographiques incorrect (format decimal requis)");
+                                }
                                 $obj = array(
                                     "NAME" => strtoupper(trim($sheet->getCellByColumnAndRow(1, $ligne)->getValue())),
                                     "ABBREVIATION" => strtoupper(trim($sheet->getCellByColumnAndRow(2, $ligne)->getCalculatedValue())),
-                                    "LONGITUDE" => trim($sheet->getCellByColumnAndRow(3, $ligne)->getFormattedValue()),
-                                    "LATITUDE" => trim($sheet->getCellByColumnAndRow(4, $ligne)->getValue()),
+                                    "LONGITUDE" => $longitude,
+                                    "LATITUDE" => $latitude,
                                     "ELEVATION" => trim($sheet->getCellByColumnAndRow(5, $ligne)->getFormattedValue()),
                                     "DESCRIPTION" => trim($sheet->getCellByColumnAndRow(6, $ligne)->getValue())
                                 );
