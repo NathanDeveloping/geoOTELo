@@ -83,7 +83,6 @@ APP.modules.map = (function() {
          * @param data
          */
         affichageStations : function(data) {
-            console
             var icon = 'station-icon.png';
             var icon2x = 'station-icon-2x.png';
             var type = APP.modules.utility.baseName(this.url);
@@ -95,8 +94,8 @@ APP.modules.map = (function() {
             });
             var i = 0;
             data.forEach(function(k, v) {
-                long = APP.modules.utility.convertDMSToDD(k.LONGITUDE.replace(/\s+/g, ''));
-                lat = APP.modules.utility.convertDMSToDD(k.LATITUDE.replace(/\s+/g, ''));
+                long = k.LONGITUDE.replace(/\s+/g, '');
+                lat = k.LATITUDE.replace(/\s+/g, '');
                 var newMarker = new DataMarker([lat, long], {icon: stationIcon}).bindLabel(k.ABBREVIATION);
                 newMarker.on("click", APP.modules.affichage.showStationInformations);
                 newMarker.options.abbreviation = k.ABBREVIATION;
@@ -326,15 +325,13 @@ APP.modules.affichage = (function() {
                 var analysesDiv = $("#analyses");
                 if(informationDiv.is(":hidden")) {
                     titre.text("Station : " + station.ABBREVIATION);
-                    //description.text(station.DESCRIPTION);
-                    description.text("Nunc non rutrum odio. Sed commodo massa sed pulvinar tristique. In luctus libero at arcu tincidunt, ut posuere nisi gravida. Nullam blandit vitae justo laoreet gravida. Fusce nec urna sit amet tellus maximus suscipit. Nam eget laoreet ante. Quisque sapien purus, pellentesque id magna eu, consectetur suscipit erat.");
+                    description.text(station.DESCRIPTION);
                     nomStation.text(station.NAME);
                     informationDiv.toggle("slide", {direction : 'right'});
                 } else if(titre.text() !== ("Station : " + station.ABBREVIATION)) {
                     informationDiv.toggle("slide", {direction : 'right'});
                     titre.text("Station : " + station.ABBREVIATION);
-                    //description.text(station.DESCRIPTION);
-                    description.text("Nunc non rutrum odio. Sed commodo massa sed pulvinar tristique. In luctus libero at arcu tincidunt, ut posuere nisi gravida. Nullam blandit vitae justo laoreet gravida. Fusce nec urna sit amet tellus maximus suscipit. Nam eget laoreet ante. Quisque sapien purus, pellentesque id magna eu, consectetur suscipit erat.");
+                    description.text(station.DESCRIPTION);
                     nomStation.text(station.NAME);
                     informationDiv.toggle("slide", {direction : 'right'});
                 }
@@ -633,25 +630,6 @@ APP.modules.service = (function() {
 APP.modules.utility = (function() {
 
     return {
-
-        /**
-         * methode convertis les coordonnees
-         * geographiques du format DMS vers format decimal
-         *
-         * @param input
-         *          lat/lng sous format DMS
-         * @returns {number}
-         *          lat/lng sous format decimal
-         */
-        convertDMSToDD : function(input) {
-            var parts = input.split(/[^\d\w\.]+/);
-            var dd = Number(parts[0]) + Number(parts[1])/60 + Number(parts[2])/(60*60);
-
-            if (parts[3] == "S" || parts[3] == "W") {
-                dd = dd * -1;
-            } // Don't do anything for N or E
-            return dd;
-        },
 
         /**
          * methode retourne le nom de fichier
