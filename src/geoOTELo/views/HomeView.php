@@ -177,6 +177,7 @@ class HomeView
 <script type="text/javascript" src="js/bootstrap-notify.min.js"></script>
 <script type="text/javascript" src="js/leaflet.js"></script>
 <script type="text/javascript" src="js/leaflet.label.js"></script>
+<script type="text/javascript" src="js/proj4.js"></script>
 <script type="text/javascript" src="js/index.js"></script>
 
 

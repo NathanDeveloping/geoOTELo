@@ -77,4 +77,4 @@ $app->run();
 //$c->getAnalysisData("SED_20150722_MUSTA_XRF_S");
 
 //$c = new StationController($db);
-//$c->getStations("water", "TSS");
+//$c->getStations("water");

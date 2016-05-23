@@ -94,9 +94,12 @@ APP.modules.map = (function() {
             });
             var i = 0;
             data.forEach(function(k, v) {
-                long = k.LONGITUDE.replace(/\s+/g, '');
-                lat = k.LATITUDE.replace(/\s+/g, '');
-                var newMarker = new DataMarker([lat, long], {icon: stationIcon}).bindLabel(k.ABBREVIATION);
+                var long = k.LONGITUDE.replace(/\s+/g, '');
+                var lat = k.LATITUDE.replace(/\s+/g, '');
+                var firstProj = '+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs';
+                var secondProj = '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs ';
+                var latlng = proj4(firstProj, secondProj, [k.LONGITUDE, k.LATITUDE]);
+                var newMarker = new DataMarker([latlng[1], latlng[0]], {icon: stationIcon}).bindLabel(k.ABBREVIATION);
                 newMarker.on("click", APP.modules.affichage.showStationInformations);
                 newMarker.options.abbreviation = k.ABBREVIATION;
                 markers.featureGroup.addLayer(newMarker);

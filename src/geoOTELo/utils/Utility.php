@@ -16,7 +16,7 @@ class Utility
 {
     static function distinctValidStations($arrStations) {
         return array_filter($arrStations, function($v) {
-            return (strstr($v['LATITUDE'], "°") && strstr($v['LONGITUDE'], "°"));
+            return (!empty($v['LATITUDE']) && !empty($v['LONGITUDE']));
         });
     }
 }
