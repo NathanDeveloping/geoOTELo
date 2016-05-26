@@ -101,6 +101,7 @@ class HomeView
                     <div id="collapse1" class="panel-collapse collapse in">
                         <div class="panel-body" id="stationInfosBody">
                             <h4 id="nomStation"></h4>
+                            <h6 id="coord"></h6>
                             <p id="description"></p>
                         </div>
                     </div>
@@ -178,6 +179,7 @@ class HomeView
 <script type="text/javascript" src="js/leaflet.js"></script>
 <script type="text/javascript" src="js/leaflet.label.js"></script>
 <script type="text/javascript" src="js/proj4.js"></script>
+<script type="text/javascript" src="js/leaflet-wmts.js"></script>
 <script type="text/javascript" src="js/index.js"></script>
 
 

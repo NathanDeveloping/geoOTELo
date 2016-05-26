@@ -196,3 +196,9 @@ tr {
     position:absolute;
     bottom:10px;
 }
+
+#coord {
+    text-align: center;
+    margin-bottom:30px;
+    margin-top:10px;
+}

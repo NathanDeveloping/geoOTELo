@@ -72,9 +72,31 @@ APP.modules.map = (function() {
             };
             circles = L.featureGroup().addTo(map);
             //markers.featureGroup.on('click', APP.modules.affichage.showStationInformations);
-            L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            var osm = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
+            var url = "http://wxs.ign.fr/9bci2kf4ow18mxkruzqcl3pi/geoportail/wmts";
+            var ign = new L.TileLayer.WMTS(url,
+                {
+                    layer: "ORTHOIMAGERY.ORTHOPHOTOS",
+                    style: "normal",
+                    tilematrixSet: "PM",
+                    format: "image/jpeg",
+                    attribution: "<a href='http://www.ign.fr'>IGN</a>"
+                }
+            );
+            var ign2 = new L.TileLayer.WMTS(url,
+                {
+                    layer: "HYDROGRAPHY.HYDROGRAPHY",
+                    style: "normal",
+                    tilematrixSet: "PM",
+                    format: "image/jpeg",
+                    attribution: "<a href='http://www.ign.fr'>IGN</a>"
+                }
+            );
+            var baseLayers = {"IGN" : ign, "IGN hydrographie" : ign2, "OpenStreetMap" : osm};
+            L.control.scale({'position':'bottomleft','metric':true,'imperial':false}).addTo(map);
+            L.control.layers(baseLayers, {}).addTo(map);
             map.on('click', APP.modules.affichage.closePanel);
         },
 
@@ -326,16 +348,19 @@ APP.modules.affichage = (function() {
                 var description = $('#description');
                 var filtreDiv = $("#filtres");
                 var analysesDiv = $("#analyses");
+                var coord = $("#coord");
                 if(informationDiv.is(":hidden")) {
                     titre.text("Station : " + station.ABBREVIATION);
                     description.text(station.DESCRIPTION);
                     nomStation.text(station.NAME);
+                    coord.text("latitude : " + latlng.lat + " ; longitude : " + latlng.lng);
                     informationDiv.toggle("slide", {direction : 'right'});
                 } else if(titre.text() !== ("Station : " + station.ABBREVIATION)) {
                     informationDiv.toggle("slide", {direction : 'right'});
                     titre.text("Station : " + station.ABBREVIATION);
                     description.text(station.DESCRIPTION);
                     nomStation.text(station.NAME);
+                    coord.text("latitude : " + latlng.lat + " ; longitude : " + latlng.lng);
                     informationDiv.toggle("slide", {direction : 'right'});
                 }
                 if($('#stationInfosBody').is(":hidden")) {
