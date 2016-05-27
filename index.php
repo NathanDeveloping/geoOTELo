@@ -74,6 +74,7 @@ $app->post('/api/types', function() use ($db) {
 $app->run();
 
 //$c = new AnalysisController($db);
+//$c->getAnalysisNames("JOSAN");
 //$c->getAnalysisData("SED_20150722_MUSTA_XRF_S");
 
 //$c = new StationController($db);

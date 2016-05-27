@@ -96,7 +96,6 @@ body {
 #analysesBody {
     height:100%;
     margin: 0;
-    margin-top:10px;
     border-top : 0;
 }
 
@@ -112,7 +111,7 @@ body {
     bottom:100px;
     margin-top:5px;
     margin-bottom:5px;
-    height:52%;
+    height:51%;
 }
 
 #analyses-footer {
@@ -187,7 +186,7 @@ tr {
 }
 
 #filtersDiv {
-    height: 25%;
+    height: 30%;
     margin-bottom:5px;
 }
 
@@ -198,7 +197,27 @@ tr {
 }
 
 #coord {
+    font-weight : bold;
     text-align: center;
     margin-bottom:30px;
     margin-top:10px;
+}
+
+.daterangepicker, .daterangepicker.dropdown-menu, #dateInterval {
+    z-index : 20000;
+}
+
+.daterangepicker {
+    left: 60%;
+}
+
+#dateInterval {
+    width : 75%;
+    text-align:center;
+    margin-bottom:5px;
+    border-radius:6px;
+}
+
+#default {
+    width:20%;
 }

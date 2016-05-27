@@ -31,6 +31,16 @@ var APP = (function() {
             typeFilterAnalysisCombobox.on('change', APP.modules.affichage.initFilterGroupAnalysisCombobox);
             typeFilterAnalysisCombobox.on('change', APP.modules.affichage.initSpecificMeasurementCombobox);
             $('#openButton').click(APP.modules.affichage.showModal);
+            var dateInterval = $('#dateInterval');
+            dateInterval.daterangepicker({
+                "showDropdowns": true,
+                "autoApply": true,
+                "startDate": "01/01/2010",
+                "endDate": "12/31/2020"
+            }, function(start, end, label) {
+            });
+            dateInterval.on('apply.daterangepicker', APP.modules.affichage.showAnalysis);
+            $('#default').click(APP.modules.affichage.reinitDateInterval);
         }
     }
 })();
@@ -75,8 +85,7 @@ APP.modules.map = (function() {
             var osm = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
-            var url = "http://wxs.ign.fr/9bci2kf4ow18mxkruzqcl3pi/geoportail/wmts";
-            var ign = new L.TileLayer.WMTS(url,
+            var ign = new L.TileLayer.WMTS("https://wxs.ign.fr/9bci2kf4ow18mxkruzqcl3pi/geoportail/wmts",
                 {
                     layer: "ORTHOIMAGERY.ORTHOPHOTOS",
                     style: "normal",
@@ -85,16 +94,7 @@ APP.modules.map = (function() {
                     attribution: "<a href='http://www.ign.fr'>IGN</a>"
                 }
             );
-            var ign2 = new L.TileLayer.WMTS(url,
-                {
-                    layer: "HYDROGRAPHY.HYDROGRAPHY",
-                    style: "normal",
-                    tilematrixSet: "PM",
-                    format: "image/jpeg",
-                    attribution: "<a href='http://www.ign.fr'>IGN</a>"
-                }
-            );
-            var baseLayers = {"IGN" : ign, "IGN hydrographie" : ign2, "OpenStreetMap" : osm};
+            var baseLayers = {"IGN" : ign, "OpenStreetMap" : osm};
             L.control.scale({'position':'bottomleft','metric':true,'imperial':false}).addTo(map);
             L.control.layers(baseLayers, {}).addTo(map);
             map.on('click', APP.modules.affichage.closePanel);
@@ -205,6 +205,7 @@ APP.modules.affichage = (function() {
     var groupMeasuresCombobox = $('#groupMeasuresCombobox');
     var specificMeasureCombobox = $('#specificMeasurementCombobox');
     var openPanelButton = $('#openInformation');
+    var dateDebut, dateFin;
 
     return {
 
@@ -400,6 +401,9 @@ APP.modules.affichage = (function() {
             var type = typeFilterAnalysisCombobox.val();
             var groupeMesure = groupMeasuresCombobox.val();
             var specificMeasurement = specificMeasureCombobox.val();
+            var dateInterval = $('#dateInterval').data('daterangepicker');
+            dateDebut = dateInterval.startDate._d;
+            dateFin = dateInterval.endDate._d;
             if(type === "all") type = null;
             if(groupeMesure === "all") groupeMesure = null;
             if(specificMeasurement === "none" || specificMeasurement == "") specificMeasurement = null;
@@ -416,11 +420,29 @@ APP.modules.affichage = (function() {
          */
         showAnalysisField : function(data) {
             data.forEach(function (k, v) {
-                listAnalysis.append($('<li>', {
-                    value: k._id,
-                    text: k._id,
-                    class: 'list-group-item'
-                }));
+                if(dateDebut != null && dateFin != null) {
+                    var dateComprise = false;
+                    k.INTRO['SAMPLING DATE'].forEach(function(c, d) {
+                        var split = c.split('-');
+                        var currentDate = new Date(split[0], split[1] - 1, split[2]);
+                        if(currentDate >= dateDebut && currentDate <= dateFin) {
+                            dateComprise = true;
+                        }
+                    });
+                    if(dateComprise) {
+                        listAnalysis.append($('<li>', {
+                            value: k._id,
+                            text: k._id,
+                            class: 'list-group-item'
+                        }));
+                    }
+                } else {
+                    listAnalysis.append($('<li>', {
+                        value: k._id,
+                        text: k._id,
+                        class: 'list-group-item'
+                    }));
+                }
             });
             $('#notfoundimg').hide();
             listAnalysis.show(500);
@@ -518,6 +540,16 @@ APP.modules.affichage = (function() {
                     i++;
                 })
             }
+        },
+
+        /**
+         * permet de réinitialiser le choix de l'interval de date
+         */
+        reinitDateInterval : function() {
+            var dateInterval = $('#dateInterval').data('daterangepicker');
+            dateInterval.setStartDate(moment('2010-01-01'));
+            dateInterval.setEndDate(moment('2020-12-31'));
+            $("#refreshButton2").trigger('click');
         }
     }
 

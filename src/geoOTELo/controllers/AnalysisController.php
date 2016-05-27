@@ -34,15 +34,15 @@ class AnalysisController
             foreach ($this->listCollections as $k => $v) {
                 if (is_null($filterAnalysisGroup)) {
                     if(is_null($specificMeasurement)) {
-                        $arr = array_merge($arr, iterator_to_array($v->find(array("INTRO.STATION.ABBREVIATION" => $station), array('_id' => true))));
+                        $arr = array_merge($arr, iterator_to_array($v->find(array("INTRO.STATION.ABBREVIATION" => $station), array('_id' => true, 'INTRO.SAMPLING DATE' => true))));
                     } else {
-                        $arr = array_merge($arr, iterator_to_array($v->find(array("INTRO.STATION.ABBREVIATION" => $station, "INTRO.MEASUREMENT.ABBREVIATION" => array('$regex' => new MongoRegex("/$specificMeasurement/i"))), array('_id' => true))));
+                        $arr = array_merge($arr, iterator_to_array($v->find(array("INTRO.STATION.ABBREVIATION" => $station, "INTRO.MEASUREMENT.ABBREVIATION" => array('$regex' => new MongoRegex("/$specificMeasurement/i"))), array('_id' => true, 'INTRO.SAMPLING DATE' => true))));
                     }
                 } else {
                     if(is_null($specificMeasurement)) {
-                        $arr = array_merge($arr, iterator_to_array($v->find(array('_id' => array('$regex' => new MongoRegex("/$filterAnalysisGroup/i")), "INTRO.STATION.ABBREVIATION" => $station), array('_id' => true))));
+                        $arr = array_merge($arr, iterator_to_array($v->find(array('_id' => array('$regex' => new MongoRegex("/$filterAnalysisGroup/i")), "INTRO.STATION.ABBREVIATION" => $station), array('_id' => true, 'INTRO.SAMPLING DATE' => true))));
                     } else {
-                        $arr = array_merge($arr, iterator_to_array($v->find(array('_id' => array('$regex' => new MongoRegex("/$filterAnalysisGroup/i")), "INTRO.STATION.ABBREVIATION" => $station, "INTRO.MEASUREMENT.ABBREVIATION" => array('$regex' => new MongoRegex("/$specificMeasurement/i"))), array('_id' => true))));
+                        $arr = array_merge($arr, iterator_to_array($v->find(array('_id' => array('$regex' => new MongoRegex("/$filterAnalysisGroup/i")), "INTRO.STATION.ABBREVIATION" => $station, "INTRO.MEASUREMENT.ABBREVIATION" => array('$regex' => new MongoRegex("/$specificMeasurement/i"))), array('_id' => true, 'INTRO.SAMPLING DATE' => true))));
                     }
                 }
             }
@@ -51,15 +51,15 @@ class AnalysisController
                 if (strcmp($collection->getName(), $filterType) == 0) {
                     if (is_null($filterAnalysisGroup)) {
                         if(is_null($specificMeasurement)) {
-                            $arr = iterator_to_array($collection->find(array("INTRO.STATION.ABBREVIATION" => $station), array('_id' => true)));
+                            $arr = iterator_to_array($collection->find(array("INTRO.STATION.ABBREVIATION" => $station), array('_id' => true, 'INTRO.SAMPLING DATE' => true)));
                         } else {
-                            $arr = iterator_to_array($collection->find(array("INTRO.STATION.ABBREVIATION" => $station, "INTRO.MEASUREMENT.ABBREVIATION" => array('$regex' => new MongoRegex("/$specificMeasurement/i"))), array('_id' => true)));
+                            $arr = iterator_to_array($collection->find(array("INTRO.STATION.ABBREVIATION" => $station, "INTRO.MEASUREMENT.ABBREVIATION" => array('$regex' => new MongoRegex("/$specificMeasurement/i"))), array('_id' => true, 'INTRO.SAMPLING DATE' => true)));
                         }
                     } else {
                         if(is_null($specificMeasurement)) {
-                            $arr = iterator_to_array($collection->find(array('_id' => array('$regex' => new MongoRegex("/$filterAnalysisGroup/i")), "INTRO.STATION.ABBREVIATION" => $station), array('_id' => true)));
+                            $arr = iterator_to_array($collection->find(array('_id' => array('$regex' => new MongoRegex("/$filterAnalysisGroup/i")), "INTRO.STATION.ABBREVIATION" => $station), array('_id' => true, 'INTRO.SAMPLING DATE' => true)));
                         } else {
-                            $arr = iterator_to_array($collection->find(array('_id' => array('$regex' => new MongoRegex("/$filterAnalysisGroup/i")), "INTRO.STATION.ABBREVIATION" => $station, "INTRO.MEASUREMENT.ABBREVIATION" => array('$regex' => new MongoRegex("/$specificMeasurement/i"))), array('_id' => true)));
+                            $arr = iterator_to_array($collection->find(array('_id' => array('$regex' => new MongoRegex("/$filterAnalysisGroup/i")), "INTRO.STATION.ABBREVIATION" => $station, "INTRO.MEASUREMENT.ABBREVIATION" => array('$regex' => new MongoRegex("/$specificMeasurement/i"))), array('_id' => true, 'INTRO.SAMPLING DATE' => true)));
                         }
                     }
                     break;

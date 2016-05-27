@@ -44,13 +44,14 @@ class HomeView
 <head>
     <meta charset="utf-8">
     <title>GeoOTELo</title>
-    <link href="styles/style.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="styles/jquery-ui.min.css">
     <link rel="stylesheet" href="styles/bootstrap.min.css">
     <link rel="stylesheet" href="styles/bootstrap-theme.min.css">
     <link rel="stylesheet" href="styles/bootstrap-select.min.css">
+    <link rel="stylesheet" href="styles/daterangepicker.css">
     <link rel="stylesheet" href="styles/leaflet.css">
     <link rel="stylesheet" href="styles/leaflet.label.css">
+    <link href="styles/style.css" rel="stylesheet" type="text/css"/>
 </head>
 
 <body>
@@ -114,6 +115,7 @@ class HomeView
                     <div id="collapse2" class="panel-collapse collapse">
                         <div class="panel-body" id="analysesBody">
                                 <div id="filtersDiv">
+                                    <input type="text" name="daterange" id="dateInterval" value="01/01/2015 - 01/31/2015" /> <button class="btn navbar-btn" id="default">Default</button>
                                     <select class="selectpicker filtersSelect" id="typeFilterAnalysisCombobox" title="Sample kind..." data-width="100%">
                                           <option value="all">all</option>
                                     </select>
@@ -174,6 +176,8 @@ class HomeView
 <script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/daterangepicker.js"></script>
 <script type="text/javascript" src="js/bootstrap-select.min.js"></script>
 <script type="text/javascript" src="js/bootstrap-notify.min.js"></script>
 <script type="text/javascript" src="js/leaflet.js"></script>
