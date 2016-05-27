@@ -33,10 +33,13 @@ var APP = (function() {
             $('#openButton').click(APP.modules.affichage.showModal);
             var dateInterval = $('#dateInterval');
             dateInterval.daterangepicker({
+                locale: {
+                    format: 'YYYY-MM-DD'
+                },
                 "showDropdowns": true,
                 "autoApply": true,
-                "startDate": "01/01/2010",
-                "endDate": "12/31/2020"
+                "startDate": moment('2013-01-01'),
+                "endDate": moment()
             }, function(start, end, label) {
             });
             dateInterval.on('apply.daterangepicker', APP.modules.affichage.showAnalysis);
@@ -547,8 +550,8 @@ APP.modules.affichage = (function() {
          */
         reinitDateInterval : function() {
             var dateInterval = $('#dateInterval').data('daterangepicker');
-            dateInterval.setStartDate(moment('2010-01-01'));
-            dateInterval.setEndDate(moment('2020-12-31'));
+            dateInterval.setStartDate(moment('2013-01-01'));
+            dateInterval.setEndDate(moment());
             $("#refreshButton2").trigger('click');
         }
     }
