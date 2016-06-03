@@ -477,6 +477,7 @@ APP.modules.affichage = (function() {
                     });
                     openPanelButton.toggle("slide", {direction : 'right'});
                 }
+                $('.daterangepicker').hide();
                 informationDiv.toggle("slide", {direction: 'right'});
             }
         },
