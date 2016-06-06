@@ -19,12 +19,12 @@ La branche json_mobised consiste à extraire les données du projet MOBISED cont
 
 Le script **conversion.php** prend en argument un dossier d'origine pour la recherche des fichiers Excel ainsi qu'un répertoire de destination pour les fichiers CSV qui seront générés.
 
-> php conversion.php <dossier_origine> <dossier_destination_csv>
+> php conversion.php <dossier_origine> <dossier_destination_csv> <replication json (y/n)>
 
 La classe **ExcelConverter** présente les fonctions nécessaires au traitement des fichiers Excel.
 
 
-    $exc = new ExcelConverter("repertoire/fichiers/excel", "repertoire/destination/csv");
+    $exc = new ExcelConverter("repertoire/fichiers/excel", "repertoire/destination/csv", "chaîne réplication (y/n)");
     $exc->launch();
 
 

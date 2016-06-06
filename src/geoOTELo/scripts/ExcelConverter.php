@@ -25,8 +25,10 @@ class ExcelConverter {
      * @var csvDirectory        repertoire d'arrivee des fichiers csv
      * @var $db                 base de donnee MongoDB
      * @var $logger             classe de sauvegarde de logs
+     * @var $replicateJson      booleen replication des donnees dans des fichiers JSON
+     * @var $replicateFolder    dossier de destination des fichiers JSON
      */
-    private $pathManager, $originDirectory, $csvDirectory, $logger;
+    private $pathManager, $originDirectory, $csvDirectory, $logger, $replicateJson, $replicateFolder;
     public $db;
 
     /**
@@ -36,7 +38,12 @@ class ExcelConverter {
      * @param $csvDirectory
      *          repertoire de sortie des feuillets splittés
      */
-    public function __construct($originDirectory, $csvDirectory) {
+    public function __construct($originDirectory, $csvDirectory, $replicateJson) {
+        if($replicateJson == "y") {
+            $this->replicateJson = true;
+        } else if ($replicateJson == "n") {
+            $this->replicateJson = false;
+        }
         $this->originDirectory = realpath($originDirectory);
         if(!Utility::folderExist($this->originDirectory)) {
             throw new Exception("Dossier d'origine inexistant.");
@@ -47,6 +54,15 @@ class ExcelConverter {
         }
         $this->csvDirectory = realpath($this->csvDirectory);
         $config = parse_ini_file("config/config.ini");
+        $this->replicateFolder = $config['jsonDirectory'];
+        if(empty($this->replicateFolder)) {
+            $this->replicateFolder = getcwd() . DIRECTORY_SEPARATOR . "JSON";
+        }
+        if($this->replicateJson) {
+            if(!Utility::folderExist($this->replicateFolder)) {
+                mkdir($this->replicateFolder, 0777, true);
+            }
+        }
         $this->logger = new Logger("../log", LogLevel::WARNING, array(
             'filename' => "log_" . date("Y-m-d") . ".txt",
             'dateFormat' => 'G:i:s'
@@ -117,13 +133,24 @@ class ExcelConverter {
             if ($introArrayJSON != null && $dataArrayJSON != null) {
                 $collection = $this->getCollection($k);
                 $collectionObject = $this->db->selectCollection('MOBISED', $collection);
+                $jsonArray = array('_id' => $k, "INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON);
                 try {
-                    $collectionObject->insert(array('_id' => $k, "INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON));
+                    $collectionObject->insert($jsonArray);
+                    if($this->replicateJson) {
+                        $fp = fopen($this->replicateFolder . DIRECTORY_SEPARATOR . $k . '.json', 'w');
+                        fwrite($fp, json_encode($jsonArray));
+                        fclose($fp);
+                    }
                     echo " OK " . PHP_EOL . PHP_EOL;
                 } catch (MongoDuplicateKeyException $e) {
                     echo "Analyse deja inseree, modification en cours." . PHP_EOL;
                     try {
                         $collectionObject->update(array('_id' => $k), array("INTRO" => $introArrayJSON, "DATA" => $dataArrayJSON));
+                        if($this->replicateJson) {
+                            $fp = fopen($this->replicateFolder . DIRECTORY_SEPARATOR . $k . '.json', 'w');
+                            fwrite($fp, json_encode($jsonArray));
+                            fclose($fp);
+                        }
                     } catch(Exception $e) {
                         $msg = $e->getMessage();
                         echo $msg;
