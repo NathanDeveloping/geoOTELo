@@ -284,6 +284,7 @@ class ExcelConverter {
         if($modifiedIntro || $modifiedData) {
             $filetype = PHPExcel_IOFactory::identify($file);
             $objReader = PHPExcel_IOFactory::createReader($filetype);
+
             // on test le nom des feuillets
             $objPHPExcel3 = $objReader->load($file);
             $worksheetList = $objReader->listWorksheetNames($file);
@@ -303,10 +304,13 @@ class ExcelConverter {
             if($modifiedData) {
                 if(strtoupper($worksheetList[1]) == "DATA") {
                     $objReader->setLoadSheetsOnly($worksheetList[1]);
+
                 } else {
                     throw new Exception("Feuillet DATA introuvable");
                 }
+
                 $objPHPExcel2 = $objReader->load($file);
+
                 $writer2 = PHPExcel_IOFactory::createWriter($objPHPExcel2, "CSV");
                 $writer2->setPreCalculateFormulas(false);
                 $writer2->save($dataName);
@@ -450,6 +454,7 @@ class ExcelConverter {
                                     "NAME" => trim($sheet->getCellByColumnAndRow(1, $ligne)->getValue()),
                                     "ABBREVIATION" => trim($sheet->getCellByColumnAndRow(2, $ligne)->getValue())
                                 );
+                               
                                 $arrKey["SAMPLE KIND"][] = $obj;
                                 $obj = array();
                                 break;
@@ -491,6 +496,18 @@ class ExcelConverter {
                 }
             }
         }
+
+        //Modification permettant de supprimer les clés vides
+        foreach ($arrKey as $key => $value) {
+            if (gettype($value)=="array") {
+                $keys = array_keys($value,"");
+                foreach ($keys as $k)
+                    unset($value['']);
+                }
+                $arrKey2[$key]=$value;
+            }
+
+        $arrKey=$arrKey2;
         $objPHPExcel->disconnectWorksheets();
         unset($objPHPExcel);
         Utility::keyExist($count);
@@ -554,18 +571,42 @@ class ExcelConverter {
                                 if(!empty($value)) {
                                     if (!Utility::testDate($value)) {
                                         throw new Exception("Format de date incorrect.");
-                                    }
+                                   }
                                 }
                             default :
                                 $obj[$keys[$indice - 1]] = $value;
                         }
                     }
                     if ($indice == $highestColumn) {
+                       
                         $arrKey["SAMPLES"][] = $obj;
+
                     }
                 }
             }
+
         }
+            // Modification permettant de force le type en string
+            foreach ($arrKey as $key => $value) {
+                   $convert=array(); 
+               foreach ($value as $key => $value2) {
+                foreach ($value2 as $key => $value3) {
+                    if ($key== NULL) {
+                        $key="NULL";
+                    }
+                    if ($value3 == NULL) {
+                        $convert[$key]=NULL;
+                    }
+                    else{
+                        $convert[$key]=(string)$value3;
+                    }
+                }
+                    $arrKey2[]=$convert;
+                
+               }
+            unset($arrKey);
+            $arrKey["SAMPLES"]=$arrKey2;
+            }
         $objPHPExcel->disconnectWorksheets();
         unset($objPHPExcel);
         $cwd = getcwd();
